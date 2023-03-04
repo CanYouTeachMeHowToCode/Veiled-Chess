@@ -59,7 +59,7 @@ class ChessGame:
         if self.current_player == "black" and piece.isupper(): return False
         if x1 == x2 and y1 == y2: return False
 
-        if piece.upper() == "P":
+        if piece.upper() == "P": # Pawn
             # the first move of Pawns can be two blocks vertically if the path isn't blocked by other pieces
             if x1 == 6:
                 if x2 == x1-2 and y1 == y2 and self.board[x2][y2] == " " and self.board[x2+1][y2] == " ": return True
@@ -73,7 +73,7 @@ class ChessGame:
             if (x2 == x1-1 or x2 == x1+1) and abs(y2-y1) == 1 and self.board[x2][y2].isupper() != self.board[x1][y1].isupper(): return True
             return False
 
-        if piece.upper() == "R":
+        elif piece.upper() == "R": # Rook
             if x1 != x2 and y1 != y2: return False # must remain in the same row or column
             if x1 == x2:
                 for y in range(min(y1, y2)+1, max(y1, y2)):
@@ -83,24 +83,22 @@ class ChessGame:
                     if self.board[x][y1] != " ": return False
             return True
 
-        if piece.upper() == "N":
-            dx = abs(x1 - x2)
-            dy = abs(y1 - y2)
+        elif piece.upper() == "N": # Knight
+            dx, dy = abs(x1-x2), abs(y1-y2)
             if (dx == 2 and dy == 1) or (dx == 1 and dy == 2): return True
             return False
 
-        if piece.upper() == "B":
+        elif piece.upper() == "B": # Bishop
             if abs(x1-x2) != abs(y1-y2): return False # must remain in the square with same color
-            dx = 1 if x2 > x1 else -1
-            dy = 1 if y2 > y1 else -1
-            x, y = x1 + dx, y1 + dy
+            dx, dy = 1 if x2 > x1 else -1, 1 if y2 > y1 else -1
+            x, y = x1+dx, y1+dy
             while x != x2 and y != y2:
                 if self.board[x][y] != " ": return False
                 x += dx
                 y += dy
             return True
 
-        if piece.upper() == "Q":
+        elif piece.upper() == "Q": # Queen
             # combination of checkings of Rooks and Bishops 
             if x1 == x2 or y1 == y2 or abs(x1-x2) == abs(y1-y2): 
                 if x1 == x2:
@@ -112,11 +110,16 @@ class ChessGame:
                 else:
                     dx = 1 if x2 > x1 else -1
                     dy = 1 if y2 > y1 else -1
-                    x, y = x1 + dx, y1 + dy
+                    x, y = x1+dx, y1+dy
                     while x != x2 and y != y2:
                         if self.board[x][y] != " ": return False
                         x += dx
                         y += dy
                 return True
 
-        # TODO: king's move, check/checkmate check
+        elif piece.upper() == "K": # King
+            dx, dy = abs(x1-x2), abs(y1-y2)
+            if dx <= 1 and dy <= 1: return True
+            return False
+
+        # TODO: castling, check/checkmate check
