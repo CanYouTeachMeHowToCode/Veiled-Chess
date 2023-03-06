@@ -1,18 +1,33 @@
-class ChessGame:
+from piece import *
+UNICODE_PIECE_SYMBOLS = u'.♟♞♝♜♛♚♔♕♖♗♘♙'
+ASCII_PIECE_CHARS = '.PNBRQKkqrbnp'
+'''
+Standard chess board  
+  A B C D E F G H
+8 ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 8
+7 ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟ 7
+6                 6
+5                 5
+4                 4
+3                 3
+2 ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙ 2
+1 ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖ 1
+  A B C D E F G H
+'''
+
+class Board:
     def __init__(self):
-        self.board = [
-            ["r", "n", "b", "q", "k", "b", "n", "r"],
-            ["p", "p", "p", "p", "p", "p", "p", "p"],
-            [" ", " ", " ", " ", " ", " ", " ", " "],
-            [" ", " ", " ", " ", " ", " ", " ", " "],
-            [" ", " ", " ", " ", " ", " ", " ", " "],
-            [" ", " ", " ", " ", " ", " ", " ", " "],
-            ["P", "P", "P", "P", "P", "P", "P", "P"],
-            ["R", "N", "B", "Q", "K", "B", "N", "R"]
-        ]
-        self.current_player = "white"
-        self.game_over = False
-        self.winner = None
+        self.currPlayer = "white"
+        self.checking = False
+        self.canCastlingWhite = [True, True, True] # (king unmoved, rook1 (at col A) unmoved, rook2 (at col H) unmoved)
+        self.canCastlingBlack = [True, True, True] 
+        self.checkmate = False
+        self.stalemate = False
+        self.whiteCaptives = []
+        self.blackCaptives = []
+
+        # board initialization
+        # whiteRook1 = Rook()
 
     def printBoard(self):
         print("  A B C D E F G H")
@@ -33,10 +48,10 @@ class ChessGame:
         if self.board[x1][y1] == " ":
             print("There is no piece at that position.")
             return
-        if self.current_player == "white" and self.board[x1][y1].islower():
+        if self.currPlayer == "white" and self.board[x1][y1].islower():
             print("It is not your turn.")
             return
-        if self.current_player == "black" and self.board[x1][y1].isupper():
+        if self.currPlayer == "black" and self.board[x1][y1].isupper():
             print("It is not your turn.")
             return
         if not self.isLegalMove(x1, y1, x2, y2):
@@ -44,7 +59,7 @@ class ChessGame:
             return
         self.board[x2][y2] = self.board[x1][y1]
         self.board[x1][y1] = " "
-        self.current_player = "white" if self.current_player == "black" else "black"
+        self.currPlayer = "white" if self.currPlayer == "black" else "black"
 
     def convertPosition(self, position):
         letter = position[0].upper()
@@ -55,8 +70,8 @@ class ChessGame:
     def isLegalMove(self, x1, y1, x2, y2):
         piece = self.board[x1][y1]
         if piece == " ": return False
-        if self.current_player == "white" and piece.islower(): return False
-        if self.current_player == "black" and piece.isupper(): return False
+        if self.currPlayer == "white" and piece.islower(): return False
+        if self.currPlayer == "black" and piece.isupper(): return False
         if x1 == x2 and y1 == y2: return False
 
         if piece.upper() == "P": # Pawn
@@ -122,4 +137,8 @@ class ChessGame:
             if dx <= 1 and dy <= 1: return True
             return False
 
-        # TODO: castling, check/checkmate check
+    def check(self, player):
+        opponentPlayer = ["white", "black"][int(self.currPlayer == "white")]
+        
+
+    # TODO: castling, check/checkmate check

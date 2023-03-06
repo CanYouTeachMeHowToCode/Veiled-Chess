@@ -1,4 +1,4 @@
-from logic import *
+from origin import *
 
 if __name__ == '__main__':
     game = ChessGame()
@@ -6,7 +6,7 @@ if __name__ == '__main__':
     game.printBoard()
     while not game.game_over:
         print()
-        print("{}'s turn".format(game.current_player))
+        print("{}'s turn".format(game.currPlayer))
         start = input("Enter starting position: ")
         end = input("Enter ending position: ")
         game.move(start, end)
