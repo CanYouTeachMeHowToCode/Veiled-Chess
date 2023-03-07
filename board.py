@@ -1,6 +1,6 @@
 from piece import *
-UNICODE_PIECE_SYMBOLS = u'.♟♞♝♜♛♚♔♕♖♗♘♙'
-ASCII_PIECE_CHARS = '.PNBRQKkqrbnp'
+from macro import *
+
 '''
 Standard chess board  
   A B C D E F G H
@@ -26,119 +26,43 @@ class Board:
         self.whiteCaptives = []
         self.blackCaptives = []
 
-        # board initialization
-        # whiteRook1 = Rook()
+        # standard board initialization
+        self.whitePieces = [Pawn('p', 6, c, PLAYER_WHITE) for c in range(BOARD_SIZE)] + \
+                           [Rook('r', 7, 0, PLAYER_WHITE), Rook('r', 7, 7, PLAYER_WHITE)] + \
+                           [Knight('n', 7, 1, PLAYER_WHITE), Knight('n', 7, 6, PLAYER_WHITE)] + \
+                           [Bishop('b', 7, 2, PLAYER_WHITE), Bishop('b', 7, 5, PLAYER_WHITE)] + \
+                           [Queen('q', 7, 3, PLAYER_WHITE), King('k', 7, 4, PLAYER_WHITE)]
+        self.blackPieces = [Pawn('P', 1, c, PLAYER_BLACK) for c in range(BOARD_SIZE)] + \
+                           [Rook('R', 0, 0, PLAYER_BLACK), Rook('R', 0, 7, PLAYER_BLACK)] + \
+                           [Knight('N', 0, 1, PLAYER_BLACK), Knight('N', 0, 6, PLAYER_BLACK)] + \
+                           [Bishop('B', 0, 2, PLAYER_BLACK), Bishop('B', 0, 5, PLAYER_BLACK)] + \
+                           [Queen('Q', 0, 3, PLAYER_BLACK), King('K', 0, 4, PLAYER_BLACK)]
+        self.board = [[EMPTY for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+        for whitePiece in self.whitePieces: 
+            x, y = whitePiece.getRow(), whitePiece.getCol()
+            self.board[x][y] = whitePiece
+        for blackPiece in self.blackPieces: 
+            x, y = blackPiece.getRow(), blackPiece.getCol()
+            self.board[x][y] = blackPiece
+            
+        # TODO: initialization of veiled chess board and a board that stores the real state (true chess under the veil)
 
     def printBoard(self):
         print("  A B C D E F G H")
-        for i in range(8):
-            print(8-i, end=" ")
-            for j in range(8):
-                print(self.board[i][j], end=" ")
-            print(8-i)
+        for i in range(BOARD_SIZE):
+            print(BOARD_SIZE-i, end=" ")
+            for j in range(BOARD_SIZE):
+                asciiName = self.board[i][j].getName() if self.board[i][j] != EMPTY else EMPTY
+                unicodeSymbol = UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(asciiName)]
+                print(unicodeSymbol, end=" ")
+            print(BOARD_SIZE-i)
         print("  A B C D E F G H")
 
-    def move(self, start, end):
-        x1, y1 = self.convertPosition(start)
-        x2, y2 = self.convertPosition(end)
-        if (x1 == -1 and y1 == -1) or (x2 == -1 and y2 == -1): 
-            print("Invalid input position.")
-            return 
-        x1, x2 = 7-x1, 7-x2
-        if self.board[x1][y1] == " ":
-            print("There is no piece at that position.")
-            return
-        if self.currPlayer == "white" and self.board[x1][y1].islower():
-            print("It is not your turn.")
-            return
-        if self.currPlayer == "black" and self.board[x1][y1].isupper():
-            print("It is not your turn.")
-            return
-        if not self.isLegalMove(x1, y1, x2, y2):
-            print("Invalid move.")
-            return
-        self.board[x2][y2] = self.board[x1][y1]
-        self.board[x1][y1] = " "
-        self.currPlayer = "white" if self.currPlayer == "black" else "black"
+    def getPiece(self, r, c):
+        if 0 <= r < 8 and 0 <= c < 8: return self.board[r][c]
+        else: raise Exception("Out of bounds")
 
-    def convertPosition(self, position):
-        letter = position[0].upper()
-        number = int(position[1])-1
-        if letter not in "ABCDEFGH" or number not in range(8): return -1, -1
-        return number, ord(letter)-ord('A')
 
-    def isLegalMove(self, x1, y1, x2, y2):
-        piece = self.board[x1][y1]
-        if piece == " ": return False
-        if self.currPlayer == "white" and piece.islower(): return False
-        if self.currPlayer == "black" and piece.isupper(): return False
-        if x1 == x2 and y1 == y2: return False
-
-        if piece.upper() == "P": # Pawn
-            # the first move of Pawns can be two blocks vertically if the path isn't blocked by other pieces
-            if x1 == 6:
-                if x2 == x1-2 and y1 == y2 and self.board[x2][y2] == " " and self.board[x2+1][y2] == " ": return True
-            if x1 == 1:
-                if x2 == x1+2 and y1 == y2 and self.board[x2][y2] == " " and self.board[x2-1][y2] == " ": return True
-
-            # normal move
-            if (x2 == x1-1 or x2 == x1+1) and y1 == y2 and self.board[x2][y2] == " ": return True
-
-            # take opponent's piece
-            if (x2 == x1-1 or x2 == x1+1) and abs(y2-y1) == 1 and self.board[x2][y2].isupper() != self.board[x1][y1].isupper(): return True
-            return False
-
-        elif piece.upper() == "R": # Rook
-            if x1 != x2 and y1 != y2: return False # must remain in the same row or column
-            if x1 == x2:
-                for y in range(min(y1, y2)+1, max(y1, y2)):
-                    if self.board[x1][y] != " ": return False
-            elif y1 == y2:
-                for x in range(min(x1, x2)+1, max(x1, x2)):
-                    if self.board[x][y1] != " ": return False
-            return True
-
-        elif piece.upper() == "N": # Knight
-            dx, dy = abs(x1-x2), abs(y1-y2)
-            if (dx == 2 and dy == 1) or (dx == 1 and dy == 2): return True
-            return False
-
-        elif piece.upper() == "B": # Bishop
-            if abs(x1-x2) != abs(y1-y2): return False # must remain in the square with same color
-            dx, dy = 1 if x2 > x1 else -1, 1 if y2 > y1 else -1
-            x, y = x1+dx, y1+dy
-            while x != x2 and y != y2:
-                if self.board[x][y] != " ": return False
-                x += dx
-                y += dy
-            return True
-
-        elif piece.upper() == "Q": # Queen
-            # combination of checkings of Rooks and Bishops 
-            if x1 == x2 or y1 == y2 or abs(x1-x2) == abs(y1-y2): 
-                if x1 == x2:
-                    for y in range(min(y1, y2)+1, max(y1, y2)):
-                        if self.board[x1][y] != " ": return False
-                elif y1 == y2:
-                    for x in range(min(x1, x2)+1, max(x1, x2)):
-                        if self.board[x][y1] != " ": return False
-                else:
-                    dx = 1 if x2 > x1 else -1
-                    dy = 1 if y2 > y1 else -1
-                    x, y = x1+dx, y1+dy
-                    while x != x2 and y != y2:
-                        if self.board[x][y] != " ": return False
-                        x += dx
-                        y += dy
-                return True
-
-        elif piece.upper() == "K": # King
-            dx, dy = abs(x1-x2), abs(y1-y2)
-            if dx <= 1 and dy <= 1: return True
-            return False
-
-    def check(self, player):
-        opponentPlayer = ["white", "black"][int(self.currPlayer == "white")]
-        
-
-    # TODO: castling, check/checkmate check
+if __name__ == '__main__':
+    board = Board()
+    board.printBoard()
