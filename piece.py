@@ -53,6 +53,7 @@ class Pawn(Piece):
                 moves.append((x+1, y))
                 if x == 1 and GameBoard.getPiece(x+2, y) == EMPTY: # first move can move 2 squares vertically if unblocked
                     moves.append((x+2, y))
+        return moves
     
     def pieceTakingMove(self, GameBoard):
         moves = []
@@ -69,6 +70,7 @@ class Pawn(Piece):
                 moves.append((x+1, y-1))
             if GameBoard.getPiece(x+1, y+1) != EMPTY and GameBoard.getPiece(x+1, y+1).getPlayer() != self.getPlayer(): 
                 moves.append((x+1, y+1))
+        return moves
     
     def getLegalMoves(self, GameBoard):
         return self.normalMove(GameBoard)+self.pieceTakingMove(GameBoard)
@@ -120,8 +122,6 @@ class Knight(Piece):
                     normalMoves.append((x+dir[0], y+dir[1]))
                 elif GameBoard.getPiece(x+dir[0], y+dir[1]) != EMPTY and GameBoard.getPiece(x+dir[0], y+dir[1]).getPlayer() != self.getPlayer(): 
                     pieceTakingMoves.append((x+dir[0], y+dir[1]))
-                    break
-                else: break
         return normalMoves, pieceTakingMoves
     
     def normalMove(self, GameBoard):
@@ -195,8 +195,6 @@ class King(Piece):
                     normalMoves.append((x+dir[0], y+dir[1]))
                 elif GameBoard.getPiece(x+dir[0], y+dir[1]) != EMPTY and GameBoard.getPiece(x+dir[0], y+dir[1]).getPlayer() != self.getPlayer(): 
                     pieceTakingMoves.append((x+dir[0], y+dir[1]))
-                    break
-                else: break
         return normalMoves, pieceTakingMoves
     
     def normalMove(self, GameBoard):

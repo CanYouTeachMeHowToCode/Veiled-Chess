@@ -17,7 +17,7 @@ Standard chess board
 
 class Board:
     def __init__(self):
-        self.currPlayer = "white"
+        self.currPlayer = PLAYER_WHITE # white start
         self.checking = False
         self.canCastlingWhite = [True, True, True] # (king unmoved, rook1 (at col A) unmoved, rook2 (at col H) unmoved)
         self.canCastlingBlack = [True, True, True] 
@@ -58,11 +58,78 @@ class Board:
             print(BOARD_SIZE-i)
         print("  A B C D E F G H")
 
+    def switchPlayer(self):
+        self.currPlayer = PLAYER_BLACK if self.currPlayer == PLAYER_WHITE else PLAYER_WHITE
+
+    def convertPosition(self, position): # for terminal version used only
+        letter = position[0].upper()
+        number = BOARD_SIZE-int(position[1])
+        if letter not in "ABCDEFGH" or number not in range(BOARD_SIZE): return -1, -1
+        return number, ord(letter)-ord('A')
+    
     def getPiece(self, r, c):
         if 0 <= r < 8 and 0 <= c < 8: return self.board[r][c]
         else: raise Exception("Out of bounds")
 
+    def getLegalMove(self, r, c):
+        x, y = r, c
+        startPiece = self.getPiece(x, y)
+        if startPiece == EMPTY: return []
+        legalMoves = startPiece.getLegalMoves(self)
+        # TODO: immediate check/pinned check/checkmate/stalemate check
+        return legalMoves
 
-if __name__ == '__main__':
+    def getAllLegalMoves(self):
+        pass
+
+    def move(self, start, end):
+        x1, y1 = self.convertPosition(start)
+        x2, y2 = self.convertPosition(end)
+        startPiece = self.getPiece(x1, y1)
+        if startPiece != EMPTY and self.currPlayer == startPiece.getPlayer():
+            legalMoves = self.getLegalMove(x1, y1)
+            if (x2, y2) in legalMoves:
+                # endPiece = self.getPiece(x2, y2)
+                startPiece.setRow(x2)
+                startPiece.setCol(y2)
+                self.board[x2][y2] = startPiece
+                self.board[x1][y1] = EMPTY
+                print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(startPiece.getName())], start=start, end=end))
+                self.switchPlayer()
+            else: raise Exception("Invalid move. Please try another one.")
+
+        elif startPiece == EMPTY: raise Exception("This square has no pieces. Please try another one.")
+        else: raise Exception("You cannot move your opponent's piece. Please try another one.")
+
+if __name__ == '__main__': # some trivial tests (will implement test in formal format later)
+    # start
     board = Board()
     board.printBoard()
+    # Pawn normal move test (start 2 blocks)
+    board.move("E2", "E4")
+    board.printBoard()
+    board.move("F7", "F5")
+    board.printBoard()
+    # Pawn taking piece test
+    board.move("E4", "F5")
+    board.printBoard()
+    # Knight normal move test
+    board.move("B8", "C6")
+    board.printBoard()
+    # Bishop normal move test
+    board.move("F1", "B5")
+    board.printBoard()
+    # Rook normal move test
+    board.move("A8", "B8")
+    board.printBoard()
+    # Queen normal move test (also a check test)
+    board.move("D1", "H5")
+    board.printBoard()
+    # Pawn normal move test (start 1 block)
+    board.move("G7", "G6")
+    board.printBoard()
+    # King move test
+    board.move("E1", "E2")
+    board.printBoard()
+    
+
