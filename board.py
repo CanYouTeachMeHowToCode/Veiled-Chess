@@ -1,5 +1,5 @@
-from piece import *
 from macro import *
+from piece import *
 
 '''
 Standard chess board  
@@ -23,6 +23,7 @@ class Board:
         self.canCastlingBlack = [True, True, True] 
         self.checkmate = False
         self.stalemate = False
+        self.gameOver = False
         self.whiteCaptives = []
         self.blackCaptives = []
 
