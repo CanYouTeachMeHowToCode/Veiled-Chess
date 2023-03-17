@@ -218,16 +218,19 @@ class Board:
             None
 
         Output:
-            isGameOver (bool): is game over or not
+            None
         '''
         allLegalMoves = self.getAllLegalMoves()
         isOnCheck = self.isOnCheck(self.currPlayer)
         if not allLegalMoves:
-            if isOnCheck: print("checkmate!")
-            else: print("stalemate!")
-            return True
-        else: return False
-                
+            if isOnCheck: 
+                print("Checkmate!")
+                opponent = "Black" if self.currPlayer == PLAYER_WHITE else "White"
+                print("{opponent} is victorious.".format(opponent=opponent))
+            else: 
+                print("Stalemate!")
+                print("Tie")
+            self.gameOver = True
 
     def switchPlayer(self):
         self.currPlayer = PLAYER_BLACK if self.currPlayer == PLAYER_WHITE else PLAYER_WHITE
@@ -248,7 +251,8 @@ class Board:
                 self.doMove((r1, c1), (r2, c2))
                 print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(piece.getName())], start=start, end=end))
                 self.switchPlayer()
-                if self.isGameOver(): 
+                self.isGameOver()
+                if self.gameOver:
                     print("Game Over!")
                     return 
                 elif self.isOnCheck(self.currPlayer): print("check!")
@@ -314,6 +318,7 @@ if __name__ == '__main__': # some trivial tests (will implement test in formal f
     board.printBoard()
 
     # Checkmate test (2-step fool's checkmate)
+    print("========================================")
     board = Board()
     board.printBoard()
     board.move("G2", "G4")
