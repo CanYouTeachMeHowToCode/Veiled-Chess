@@ -64,7 +64,7 @@ class Board:
 
     def getLegalMove(self, r, c):
         '''
-        Find all legal moves of current pieces located at board[r][c] such that
+        Find all legal moves of current piece located at board[r][c] such that
         the move is legal and cannot lead to the check of the king of
         the player; also, if the king is currently in check, the move must remove
         the check if possible.
@@ -83,6 +83,7 @@ class Board:
         allLegalMovesOfThisPiece = piece.getLegalMoves(self)
         # print("allLegalMovesOfThisPiece: ", allLegalMovesOfThisPiece)
         for move in allLegalMovesOfThisPiece: # we only need to check whether performing this move will not put the king in check or not
+            # print("move: ", move)
             pieceTaken = self.doMove((r, c), move)
             if not self.isOnCheck(self.currPlayer): legalMoves.append(move)
             self.undoMove((r, c), move, pieceTaken)
@@ -126,9 +127,6 @@ class Board:
         for piece in opponentPieces:
             if kingLocation in piece.getLegalMoves(self): return True
         return False
-
-    def getAllLegalMoves(self):
-        pass
     
     def doMove(self, start, end):
         '''
@@ -145,11 +143,19 @@ class Board:
         r1, c1 = start
         r2, c2 = end
         piece = self.getPiece(r1, c1)
+        player = piece.getPlayer()
         piece.setRow(r2)
         piece.setCol(c2)
         pieceTaken = self.board[r2][c2]
         self.board[r2][c2] = piece
         self.board[r1][c1] = EMPTY
+        if pieceTaken != EMPTY:
+            if player == PLAYER_WHITE: 
+                self.blackPieces.remove(pieceTaken)
+                self.whiteCaptives.append(pieceTaken)
+            else:
+                self.whitePieces.remove(pieceTaken)
+                self.blackCaptives.append(pieceTaken)
         return pieceTaken
 
     def undoMove(self, start, end, pieceTaken):
@@ -167,12 +173,61 @@ class Board:
         r1, c1 = start
         r2, c2 = end
         piece = self.getPiece(r2, c2)
+        player = piece.getPlayer()
         piece.setRow(r1)
         piece.setCol(c1)
         self.board[r1][c1] = piece
         self.board[r2][c2] = pieceTaken
+        if pieceTaken != EMPTY:
+            if player == PLAYER_WHITE: 
+                self.blackPieces.append(pieceTaken)
+                self.whiteCaptives.pop()
+            else:
+                self.whitePieces.append(pieceTaken)
+                self.blackCaptives.pop()
 
-    # TODO: checkmate/stalemate check
+    def getAllLegalMoves(self):
+        '''
+        Find all legal moves of all pieces of the current player such that the move is legal; 
+
+        Input: 
+            None
+        
+        Output:
+            allLegalMoves (List[Tuple[int, int]]): list of (row, col) tuple that represents the 
+            board position where the piece can move to
+        '''
+        allLegalMoves = []
+        if self.currPlayer == PLAYER_WHITE:
+            for piece in self.whitePieces:
+                allLegalMoves += self.getLegalMove(piece.getRow(), piece.getCol())
+        else:
+            for piece in self.blackPieces:
+                allLegalMoves += self.getLegalMove(piece.getRow(), piece.getCol())
+        return allLegalMoves
+
+    def isGameOver(self):
+        '''
+        Check if the current game over or not.
+        If there is no legal moves and the King piece of the current player is on check, 
+        checkmate and opponent wins;
+        else if there is no legal moves yet the King piece of the current player is not on check, 
+        stalemate and tie
+
+        Input:
+            None
+
+        Output:
+            isGameOver (bool): is game over or not
+        '''
+        allLegalMoves = self.getAllLegalMoves()
+        isOnCheck = self.isOnCheck(self.currPlayer)
+        if not allLegalMoves:
+            if isOnCheck: print("checkmate!")
+            else: print("stalemate!")
+            return True
+        else: return False
+                
 
     def switchPlayer(self):
         self.currPlayer = PLAYER_BLACK if self.currPlayer == PLAYER_WHITE else PLAYER_WHITE
@@ -184,7 +239,6 @@ class Board:
         return number, ord(letter)-ord('A')
     
     def move(self, start, end): # for terminal version used only
-        if (self.isOnCheck(self.currPlayer)): print("check!")
         r1, c1 = self.convertPosition(start)
         r2, c2 = self.convertPosition(end)
         piece = self.getPiece(r1, c1)
@@ -194,6 +248,10 @@ class Board:
                 self.doMove((r1, c1), (r2, c2))
                 print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(piece.getName())], start=start, end=end))
                 self.switchPlayer()
+                if self.isGameOver(): 
+                    print("Game Over!")
+                    return 
+                elif self.isOnCheck(self.currPlayer): print("check!")
             else: print("Invalid move. Please try another one.")
 
         elif piece == EMPTY: print("This square has no pieces. Please try another one.")
@@ -229,12 +287,40 @@ if __name__ == '__main__': # some trivial tests (will implement test in formal f
     # also cannot move the Black King since all the place the King can move to are threatened
     board.move("E8", "F7")
     board.printBoard()
-    # resolve check
+    # resolve check by blocking it using black Pawn
     board.move("G7", "G6")
     board.printBoard()
     # King move test
     board.move("E1", "E2")
     board.printBoard()
 
+    # Check test
+    board.move("C6", "D4")
+    board.printBoard()
+    # cannot perform this step since white King is on check
+    board.move("B1", "C3")
+    board.printBoard()
+    # resolve check by moving the king
+    board.move("E2", "E1")
+    board.printBoard()
+    # a random move 
+    board.move("E7", "E5")
+    board.printBoard()
+    # check again
+    board.move("H5", "G6")
+    board.printBoard()
+    # resolve check by taking the threatening piece
+    board.move("H7", "G6")
+    board.printBoard()
 
-    # Checkmate test (TODO)
+    # Checkmate test (2-step fool's checkmate)
+    board = Board()
+    board.printBoard()
+    board.move("G2", "G4")
+    board.printBoard()
+    board.move("E7", "E5")
+    board.printBoard()
+    board.move("F2", "F4")
+    board.printBoard()
+    board.move("D8", "H4")
+    board.printBoard()
