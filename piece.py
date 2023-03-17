@@ -26,12 +26,42 @@ class Piece:
         self._col = newCol
     
     def normalMove(self, GameBoard):
+        '''
+        Moves that does not take enemy's piece
+
+        Input: 
+            GameBoard (Board): current game state
+        
+        Output:
+            moves (List[Tuple[int, int]]): list of (row, col) tuple that represents the 
+            board position where the piece can move to
+        '''
         pass 
 
     def pieceTakingMove(self, GameBoard):
+        '''
+        Moves that takes enemy's piece
+
+        Input: 
+            GameBoard (Board): current game state
+        
+        Output:
+            moves (List[Tuple[int, int]]): list of (row, col) tuple that represents the 
+            board position where the piece can move to
+        '''
         pass
 
     def getLegalMoves(self, GameBoard):
+        '''
+        All possible legal moves
+
+        Input: 
+            GameBoard (Board): current game state
+        
+        Output:
+            moves (List[Tuple[int, int]]): list of (row, col) tuple that represents the 
+            board position where the piece can move to
+        '''
         pass
 
 # Pawn
@@ -43,13 +73,13 @@ class Pawn(Piece):
         moves = []
         if self.getPlayer() == PLAYER_WHITE:
             x, y = self.getRow(), self.getCol() # current position
-            if GameBoard.getPiece(x-1, y) == EMPTY: 
+            if x-1 >= 0 and GameBoard.getPiece(x-1, y) == EMPTY: 
                 moves.append((x-1, y))
                 if x == 6 and GameBoard.getPiece(x-2, y) == EMPTY: # first move can move 2 squares vertically if unblocked
                     moves.append((x-2, y))
         elif self.getPlayer() == PLAYER_BLACK:
             x, y = self.getRow(), self.getCol() # current position
-            if GameBoard.getPiece(x+1, y) == EMPTY: 
+            if x+1 < BOARD_SIZE and GameBoard.getPiece(x+1, y) == EMPTY: 
                 moves.append((x+1, y))
                 if x == 1 and GameBoard.getPiece(x+2, y) == EMPTY: # first move can move 2 squares vertically if unblocked
                     moves.append((x+2, y))
@@ -59,16 +89,16 @@ class Pawn(Piece):
         moves = []
         if self.getPlayer() == PLAYER_WHITE:
             x, y = self.getRow(), self.getCol() # current position
-            if GameBoard.getPiece(x-1, y-1) != EMPTY and GameBoard.getPiece(x-1, y-1).getPlayer() != self.getPlayer(): 
+            if x-1 >= 0 and y-1 >= 0 and GameBoard.getPiece(x-1, y-1) != EMPTY and GameBoard.getPiece(x-1, y-1).getPlayer() != self.getPlayer(): 
                 moves.append((x-1, y-1))
-            if GameBoard.getPiece(x-1, y+1) != EMPTY and GameBoard.getPiece(x-1, y+1).getPlayer() != self.getPlayer(): 
+            if x-1 >= 0 and y+1 < BOARD_SIZE and GameBoard.getPiece(x-1, y+1) != EMPTY and GameBoard.getPiece(x-1, y+1).getPlayer() != self.getPlayer(): 
                 moves.append((x-1, y+1))
             # TODO: En passant check
         elif self.getPlayer() == PLAYER_BLACK:
             x, y = self.getRow(), self.getCol() # current position
-            if GameBoard.getPiece(x+1, y-1) != EMPTY and GameBoard.getPiece(x+1, y-1).getPlayer() != self.getPlayer(): 
+            if x+1 < BOARD_SIZE and y-1 >= 0 and GameBoard.getPiece(x+1, y-1) != EMPTY and GameBoard.getPiece(x+1, y-1).getPlayer() != self.getPlayer(): 
                 moves.append((x+1, y-1))
-            if GameBoard.getPiece(x+1, y+1) != EMPTY and GameBoard.getPiece(x+1, y+1).getPlayer() != self.getPlayer(): 
+            if x+1 < BOARD_SIZE and y+1 < BOARD_SIZE and GameBoard.getPiece(x+1, y+1) != EMPTY and GameBoard.getPiece(x+1, y+1).getPlayer() != self.getPlayer(): 
                 moves.append((x+1, y+1))
         return moves
     
