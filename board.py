@@ -18,8 +18,9 @@ Standard chess board
 class Board:
     def __init__(self):
         self.currPlayer = PLAYER_WHITE # white start
-        self.canCastlingWhite = [True, True, True] # (king unmoved, rook1 (at col A) unmoved, rook2 (at col H) unmoved)
-        self.canCastlingBlack = [True, True, True] 
+        # self.canCastlingWhite = [True, True, True] # (king unmoved, rook1 (at col A) unmoved, rook2 (at col H) unmoved)
+        # self.canCastlingBlack = [True, True, True] 
+        # self.castled = False
         self.checkmate = False
         self.stalemate = False
         self.gameOver = False
@@ -88,6 +89,15 @@ class Board:
             if not self.isOnCheck(self.currPlayer): legalMoves.append(move)
             self.undoMove((r, c), move, pieceTaken)
         # print("legalMoves: ", legalMoves)
+        # legal castling moves
+        if piece.getName() == 'K': 
+            assert(self.currPlayer == PLAYER_BLACK)
+            if self.canCastlingKingside(self.currPlayer): legalMoves.append((0, 6))
+            elif self.canCastlingQueenside(self.currPlayer): legalMoves.append((0, 2))
+        elif piece.getName() == 'k': 
+            assert(self.currPlayer == PLAYER_WHITE)
+            if self.canCastlingKingside(self.currPlayer): legalMoves.append((7, 6))
+            elif self.canCastlingQueenside(self.currPlayer): legalMoves.append((7, 2))
         return legalMoves
 
     def getKingLocation(self, player):
@@ -110,23 +120,35 @@ class Board:
                     return (r, c)
         raise Exception("King not found.")
 
-    def isOnCheck(self, player):
+    def isThreatened(self, player, position):
         '''
-        Check if current player is immmediately on check (the King of the player)
-        is directly threatened by any of the enemy pieces
+        Check if the piece at position of current player is directly threatened by any of the enemy pieces
 
         Input:
             player (String): current player
-            board (List[List[Piece]]): 2d list of piece that represents the current board
+            position (Tuple[int, int]): tuple of piece position
+        
+        Output:
+            isThreatened (bool): whether piece at this position of current player is threatened or not
+        '''
+        opponentPieces = self.blackPieces if player == PLAYER_WHITE else self.whitePieces
+        for piece in opponentPieces:
+            if position in piece.getLegalMoves(self): return True
+        return False
+
+    def isOnCheck(self, player):
+        '''
+        Check if current player is immmediately on check (the King of the player
+        is directly threatened by any of the enemy pieces)
+
+        Input:
+            player (String): current player
         
         Output:
             isOnCheck (bool): whether current player is on check or not on the board
         '''
         kingLocation = self.getKingLocation(player)
-        opponentPieces = self.blackPieces if player == PLAYER_WHITE else self.whitePieces
-        for piece in opponentPieces:
-            if kingLocation in piece.getLegalMoves(self): return True
-        return False
+        return self.isThreatened(player, kingLocation)
     
     def doMove(self, start, end):
         '''
@@ -149,6 +171,24 @@ class Board:
         pieceTaken = self.board[r2][c2]
         self.board[r2][c2] = piece
         self.board[r1][c1] = EMPTY
+        # castling move
+        if piece.getName().upper() == 'K' and abs(c2-c1) == 2:
+            if c2 == 6: # Kingside castling
+                rook = self.getPiece(r1, 7)
+                assert(rook.getName().upper() == 'R')
+                assert(r1 == r2)
+                rook.setRow(r2)
+                rook.setCol(5)
+                self.board[r2][5] = rook
+                self.board[r2][7] = EMPTY
+            elif c2 == 2: # Kingside castling
+                rook = self.getPiece(r1, 0)
+                assert(rook.getName().upper() == 'R')
+                assert(r1 == r2)
+                rook.setRow(r2)
+                rook.setCol(3)
+                self.board[r2][3] = rook
+                self.board[r2][0] = EMPTY
         if pieceTaken != EMPTY:
             if player == PLAYER_WHITE: 
                 self.blackPieces.remove(pieceTaken)
@@ -185,6 +225,54 @@ class Board:
             else:
                 self.whitePieces.append(pieceTaken)
                 self.blackCaptives.pop()
+    
+    '''
+    Castling Rules:
+    1. Neither the king nor the rook has previously moved.
+    2. There are no pieces between the king and the rook.
+    3. The king is not currently in check.
+    4. The king does not pass through or finish on a square that is attacked by an enemy piece.
+    '''
+    def canCastlingKingside(self, player):
+        '''
+        Check whether the current player can castling kingside
+
+        Input:
+            player (String): current player
+        
+        Output:
+            canCastle (bool): can castling kingside or not
+        '''
+        return self.getPiece(0, 7) != EMPTY and self.getPiece(0, 7).getName() == 'R' and self.getPiece(0, 7).unmoved and \
+                self.getPiece(0, 4) != EMPTY and self.getPiece(0, 4).getName() == 'K' and self.getPiece(0, 4).unmoved and \
+                self.getPiece(0, 5) == EMPTY and not self.isThreatened(player, (0, 5)) and \
+                self.getPiece(0, 6) == EMPTY and not self.isThreatened(player, (0, 6)) \
+                if player == PLAYER_BLACK else \
+                self.getPiece(7, 7) != EMPTY and self.getPiece(7, 7).getName() == 'r' and self.getPiece(7, 7).unmoved and \
+                self.getPiece(7, 4) != EMPTY and self.getPiece(7, 4).getName() == 'k' and self.getPiece(7, 4).unmoved and \
+                self.getPiece(7, 5) == EMPTY and not self.isThreatened(player, (7, 5)) and \
+                self.getPiece(7, 6) == EMPTY and not self.isThreatened(player, (7, 6))
+
+    def canCastlingQueenside(self, player):
+        '''
+        Check whether the current player can castling queenside
+
+        Input:
+            player (String): current player
+        
+        Output:
+            canCastle (bool): can castling queenside or not
+        '''
+        return self.getPiece(0, 0) != EMPTY and self.getPiece(0, 0).getName() == 'R' and self.getPiece(0, 0).unmoved and \
+                self.getPiece(0, 4) != EMPTY and self.getPiece(0, 4).getName() == 'K' and self.getPiece(0, 4).unmoved and \
+                self.getPiece(0, 3) == EMPTY and not self.isThreatened(player, (0, 3)) and \
+                self.getPiece(0, 2) == EMPTY and not self.isThreatened(player, (0, 2)) and \
+                self.getPiece(0, 1) == EMPTY if player == PLAYER_BLACK else \
+                self.getPiece(7, 0) != EMPTY and self.getPiece(7, 0).getName() == 'r' and self.getPiece(7, 0).unmoved and \
+                self.getPiece(7, 4) != EMPTY and self.getPiece(7, 4).getName() == 'k' and self.getPiece(7, 4).unmoved and \
+                self.getPiece(7, 3) == EMPTY and not self.isThreatened(player, (7, 3)) and \
+                self.getPiece(7, 2) == EMPTY and not self.isThreatened(player, (7, 2)) and \
+                self.getPiece(7, 1) == EMPTY
 
     def getAllLegalMoves(self):
         '''
@@ -249,6 +337,8 @@ class Board:
             legalMoves = self.getLegalMove(r1, c1)
             if (r2, c2) in legalMoves:
                 self.doMove((r1, c1), (r2, c2))
+                if piece.getName().upper() == 'K' or piece.getName().upper() == 'R':
+                    piece.unmoved = False
                 print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(piece.getName())], start=start, end=end))
                 self.switchPlayer()
                 self.isGameOver()
@@ -260,6 +350,8 @@ class Board:
 
         elif piece == EMPTY: print("This square has no pieces. Please try another one.")
         else: print("You cannot move your opponent's piece. Please try another one.")
+
+    # TODO: Pawn promotion
 
 if __name__ == '__main__': # some trivial tests (will implement test in formal format later)
     # start
@@ -315,6 +407,21 @@ if __name__ == '__main__': # some trivial tests (will implement test in formal f
     board.printBoard()
     # resolve check by taking the threatening piece
     board.move("H7", "G6")
+    board.printBoard()
+    # castling check 1 (white cannot castling since King has moved)
+    board.move("G1", "F3")
+    board.printBoard()
+    board.move("F8", "D6")
+    board.printBoard()
+    board.move("E1", "G1") # cannot castling
+    board.printBoard()
+    board.move("B1", "C3") 
+    board.printBoard()
+    board.move("G8", "F6") 
+    board.printBoard()
+    board.move("D2", "D3") 
+    board.printBoard()
+    board.move("E8", "G8") # can castling
     board.printBoard()
 
     # Checkmate test (2-step fool's checkmate)

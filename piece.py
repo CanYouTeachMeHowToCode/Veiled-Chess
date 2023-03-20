@@ -109,8 +109,8 @@ class Pawn(Piece):
 class Rook(Piece):
     def __init__(self, name, row, col, player):
         super().__init__(name, row, col, player)
-        self.moved = False # for castling check
-    
+        self.unmoved = True # for castling check
+
     def traverse(self, GameBoard):
         normalMoves, pieceTakingMoves = [], []
         x, y = self.getRow(), self.getCol() # current position
@@ -213,8 +213,8 @@ class Queen(Piece):
 class King(Piece):
     def __init__(self, name, row, col, player):
         super().__init__(name, row, col, player)
-        self.moved = False # for castling check
-    
+        self.unmoved = True # for castling check
+        
     def traverse(self, GameBoard):
         normalMoves, pieceTakingMoves = [], []
         x, y = self.getRow(), self.getCol() # current position
