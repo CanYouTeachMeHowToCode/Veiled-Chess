@@ -10,6 +10,9 @@ class Piece:
     def getName(self):
         return self._name
 
+    def setName(self, name): # for pawn promotion only
+        self._name = name
+
     def getPlayer(self):
         return self._player
 

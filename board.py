@@ -1,5 +1,7 @@
 from macro import *
 from piece import *
+import sys
+import io
 
 '''
 Standard chess board  
@@ -18,9 +20,6 @@ Standard chess board
 class Board:
     def __init__(self):
         self.currPlayer = PLAYER_WHITE # white start
-        # self.canCastlingWhite = [True, True, True] # (king unmoved, rook1 (at col A) unmoved, rook2 (at col H) unmoved)
-        # self.canCastlingBlack = [True, True, True] 
-        # self.castled = False
         self.checkmate = False
         self.stalemate = False
         self.gameOver = False
@@ -337,8 +336,8 @@ class Board:
             legalMoves = self.getLegalMove(r1, c1)
             if (r2, c2) in legalMoves:
                 self.doMove((r1, c1), (r2, c2))
-                if piece.getName().upper() == 'K' or piece.getName().upper() == 'R':
-                    piece.unmoved = False
+                if piece.getName().upper() == 'K' or piece.getName().upper() == 'R': piece.unmoved = False
+                if piece.getName().upper() == 'P': self.promoteCheck(self.currPlayer, (r2, c2))
                 print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(piece.getName())], start=start, end=end))
                 self.switchPlayer()
                 self.isGameOver()
@@ -351,7 +350,28 @@ class Board:
         elif piece == EMPTY: print("This square has no pieces. Please try another one.")
         else: print("You cannot move your opponent's piece. Please try another one.")
 
-    # TODO: Pawn promotion
+    '''
+    Pawn Promotion Rules:
+    1. Pawn of current player reaches the bottom line of the opponent player
+    2. Pawn can choose to promote to Knight, Bishop, Rook, or Queen
+    '''
+    def promoteCheck(self, player, pos):
+        if player == PLAYER_WHITE:
+            if pos[0] == 0: 
+                pieceType = input("Enter the piece you want to promote to from ['n', 'b', 'r', 'q']: \n").lower()
+                if pieceType not in ['n', 'b', 'r', 'q']: 
+                    raise Exception("Invalid promotion piece type. Please try another one.")
+                else: 
+                    piece = self.getPiece(pos[0], pos[1])
+                    piece.setName(pieceType)
+        else: 
+            if pos[0] == 7: 
+                pieceType = input("Enter the piece you want to promote to from ['N', 'b', 'r', 'q']: ").upper()
+                if pieceType not in ['N', 'B', 'R', 'Q']: 
+                    raise Exception("Invalid promotion piece type. Please try another one.")
+                else: 
+                    piece = self.getPiece(pos[0], pos[1])
+                    piece.setName(pieceType)
 
 if __name__ == '__main__': # some trivial tests (will implement test in formal format later)
     # start
@@ -436,3 +456,29 @@ if __name__ == '__main__': # some trivial tests (will implement test in formal f
     board.printBoard()
     board.move("D8", "H4")
     board.printBoard()
+
+    # Pawn promotion test 
+    print("========================================")
+    board = Board()
+    board.printBoard()
+    board.move("E2", "E4")
+    board.printBoard()
+    board.move("D7", "D5")
+    board.printBoard()
+    board.move("E4", "D5")
+    board.printBoard()
+    board.move("C7", "C6")
+    board.printBoard()
+    board.move("D5", "C6")
+    board.printBoard()
+    board.move("C8", "D7")
+    board.printBoard()
+    board.move("C6", "B7")
+    board.printBoard()
+    board.move("B8", "C6")
+    board.printBoard()
+    inputStr = io.StringIO('r') # mock input for promoting pawn to rook
+    sys.stdin = inputStr
+    board.move("B7", "A8") # promote
+    board.printBoard()
+
