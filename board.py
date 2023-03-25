@@ -336,9 +336,12 @@ class Board:
             legalMoves = self.getLegalMove(r1, c1)
             if (r2, c2) in legalMoves:
                 self.doMove((r1, c1), (r2, c2))
+                canPromote = False
                 if piece.getName().upper() == 'K' or piece.getName().upper() == 'R': piece.unmoved = False
-                if piece.getName().upper() == 'P': self.promoteCheck(self.currPlayer, (r2, c2))
-                print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(piece.getName())], start=start, end=end))
+                if piece.getName().upper() == 'P': canPromote = self.promoteCheck(self.currPlayer, (r2, c2))
+                if canPromote: print("{pawn} promotes to {piece}".format(pawn=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(['P', 'p'][int(self.currPlayer == PLAYER_WHITE)])], \
+                                                                         piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(piece.getName())]))
+                else: print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(piece.getName())], start=start, end=end))
                 self.switchPlayer()
                 self.isGameOver()
                 if self.gameOver:
@@ -356,6 +359,16 @@ class Board:
     2. Pawn can choose to promote to Knight, Bishop, Rook, or Queen
     '''
     def promoteCheck(self, player, pos):
+        '''
+        Check whether the current player can promote one of the Pawns after movement
+
+        Input:
+            player (String): current player
+            pos (Tuple[int, int]): position of the Pawn intend to promote
+        
+        Output:
+            canPromote (bool): can promote or not
+        '''
         if player == PLAYER_WHITE:
             if pos[0] == 0: 
                 pieceType = input("Enter the piece you want to promote to from ['n', 'b', 'r', 'q']: \n").lower()
@@ -364,6 +377,8 @@ class Board:
                 else: 
                     piece = self.getPiece(pos[0], pos[1])
                     piece.setName(pieceType)
+                    return True
+            return False
         else: 
             if pos[0] == 7: 
                 pieceType = input("Enter the piece you want to promote to from ['N', 'b', 'r', 'q']: ").upper()
@@ -372,6 +387,8 @@ class Board:
                 else: 
                     piece = self.getPiece(pos[0], pos[1])
                     piece.setName(pieceType)
+                    return True
+            return False
 
 if __name__ == '__main__': # some trivial tests (will implement test in formal format later)
     # start
@@ -477,7 +494,7 @@ if __name__ == '__main__': # some trivial tests (will implement test in formal f
     board.printBoard()
     board.move("B8", "C6")
     board.printBoard()
-    inputStr = io.StringIO('r') # mock input for promoting pawn to rook
+    inputStr = io.StringIO('n') # mock input for promoting pawn to rook
     sys.stdin = inputStr
     board.move("B7", "A8") # promote
     board.printBoard()
