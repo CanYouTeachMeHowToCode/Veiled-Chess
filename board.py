@@ -41,7 +41,22 @@ class Board:
         self.whiteCaptives = []
         self.blackCaptives = []
 
-        # standard board initialization
+        # initialization
+        whitePiecesExceptKing = 'p'*8+'r'*2+'n'*2+'b'*2+'q'
+        blackPiecesExceptKing = 'P'*8+'R'*2+'N'*2+'B'*2+'Q'
+        whiteShuffled = ''.join(random.sample(whitePiecesExceptKing, len(whitePiecesExceptKing)))
+        blackShuffled = ''.join(random.sample(blackPiecesExceptKing, len(blackPiecesExceptKing)))
+        # self.whitePieces = [Pawn('p', 6, c, PLAYER_WHITE, whiteShuffled[c]) for c in range(BOARD_SIZE)] + \
+        #                    [Rook('r', 7, 0, PLAYER_WHITE, whiteShuffled[8]), Rook('r', 7, 7, PLAYER_WHITE, whiteShuffled[9])] + \
+        #                    [Knight('n', 7, 1, PLAYER_WHITE, whiteShuffled[10]), Knight('n', 7, 6, PLAYER_WHITE, whiteShuffled[11])] + \
+        #                    [Bishop('b', 7, 2, PLAYER_WHITE, whiteShuffled[12]), Bishop('b', 7, 5, PLAYER_WHITE, whiteShuffled[13])] + \
+        #                    [Queen('q', 7, 3, PLAYER_WHITE, whiteShuffled[14]), King('k', 7, 4, PLAYER_WHITE, 'k')]
+        # self.blackPieces = [Pawn('P', 1, c, PLAYER_BLACK, blackShuffled[c]) for c in range(BOARD_SIZE)] + \
+        #                    [Rook('R', 0, 0, PLAYER_BLACK, blackShuffled[8]), Rook('R', 0, 7, PLAYER_BLACK, blackShuffled[9])] + \
+        #                    [Knight('N', 0, 1, PLAYER_BLACK, blackShuffled[10]), Knight('N', 0, 6, PLAYER_BLACK, blackShuffled[11])] + \
+        #                    [Bishop('B', 0, 2, PLAYER_BLACK, blackShuffled[12]), Bishop('B', 0, 5, PLAYER_BLACK, blackShuffled[13])] + \
+        #                    [Queen('Q', 0, 3, PLAYER_BLACK, blackShuffled[14]), King('K', 0, 4, PLAYER_BLACK, 'K')]
+
         self.whitePieces = [Pawn('p', 6, c, PLAYER_WHITE) for c in range(BOARD_SIZE)] + \
                            [Rook('r', 7, 0, PLAYER_WHITE), Rook('r', 7, 7, PLAYER_WHITE)] + \
                            [Knight('n', 7, 1, PLAYER_WHITE), Knight('n', 7, 6, PLAYER_WHITE)] + \
@@ -52,33 +67,58 @@ class Board:
                            [Knight('N', 0, 1, PLAYER_BLACK), Knight('N', 0, 6, PLAYER_BLACK)] + \
                            [Bishop('B', 0, 2, PLAYER_BLACK), Bishop('B', 0, 5, PLAYER_BLACK)] + \
                            [Queen('Q', 0, 3, PLAYER_BLACK), King('K', 0, 4, PLAYER_BLACK)]
-        self.standardBoard = [[EMPTY for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
-        for whitePiece in self.whitePieces: 
-            x, y = whitePiece.getRow(), whitePiece.getCol()
-            self.standardBoard[x][y] = whitePiece
-        for blackPiece in self.blackPieces: 
-            x, y = blackPiece.getRow(), blackPiece.getCol()
-            self.standardBoard[x][y] = blackPiece
         
-        self.board = self.standardBoard
-        # self.board = [[EMPTY for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
-        # TODO: initialization of veiled chess board and a board that stores the real state (true chess under the veil)
+        self._board = [[EMPTY for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+        for whitePiece in self.whitePieces: self.setPiece(whitePiece.getRow(), whitePiece.getCol(), whitePiece)
+        for blackPiece in self.blackPieces: self.setPiece(blackPiece.getRow(), blackPiece.getCol(), blackPiece)
 
+    # def printBoard(self): 
+    #     print("  A B C D E F G H")
+    #     for i in range(BOARD_SIZE):
+    #         print(BOARD_SIZE-i, end=" ")
+    #         for j in range(BOARD_SIZE):
+    #             asciiName = ""
+    #             piece = self.getPiece(i, j)
+    #             if piece == EMPTY: asciiName = EMPTY
+    #             elif piece.getName().upper == 'K': asciiName = piece.getName() # Kings are always unveiled
+    #             elif piece.unmoved: asciiName = 'v' if piece.getPlayer() == PLAYER_WHITE else 'V'
+    #             else: asciiName = piece.getName()
+    #             unicodeSymbol = UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(asciiName)]
+    #             print(unicodeSymbol, end=" ")
+    #         print(BOARD_SIZE-i)
+    #     print("  A B C D E F G H")
 
     def printBoard(self):
         print("  A B C D E F G H")
         for i in range(BOARD_SIZE):
             print(BOARD_SIZE-i, end=" ")
             for j in range(BOARD_SIZE):
-                asciiName = self.board[i][j].getName() if self.board[i][j] != EMPTY else EMPTY
+                piece = self.getPiece(i, j)
+                asciiName = piece.getName() if piece != EMPTY else EMPTY
                 unicodeSymbol = UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(asciiName)]
                 print(unicodeSymbol, end=" ")
             print(BOARD_SIZE-i)
         print("  A B C D E F G H")
     
+    def printRealBoard(self):
+        print("  A B C D E F G H")
+        for i in range(BOARD_SIZE):
+            print(BOARD_SIZE-i, end=" ")
+            for j in range(BOARD_SIZE):
+                asciiName = ""
+                piece = self.getPiece(i, j)
+                asciiName = piece.getRealPieceName() if piece != EMPTY else EMPTY
+                unicodeSymbol = UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(asciiName)]
+                print(unicodeSymbol, end=" ")
+            print(BOARD_SIZE-i)
+        print("  A B C D E F G H")
+
     def getPiece(self, r, c):
-        if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE: return self.board[r][c]
+        if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE: return self._board[r][c]
         raise Exception("Out of bounds")
+
+    def setPiece(self, r, c, piece):
+        self._board[r][c] = piece
 
     def getLegalMove(self, r, c):
         '''
@@ -185,9 +225,9 @@ class Board:
         player = piece.getPlayer()
         piece.setRow(r2)
         piece.setCol(c2)
-        pieceTaken = self.board[r2][c2]
-        self.board[r2][c2] = piece
-        self.board[r1][c1] = EMPTY
+        pieceTaken = self.getPiece(r2, c2)
+        self.setPiece(r2, c2, piece)
+        self.setPiece(r1, c1, EMPTY)
         # castling move
         if piece.getName().upper() == 'K' and abs(c2-c1) == 2:
             if c2 == 6: # Kingside castling
@@ -196,16 +236,16 @@ class Board:
                 assert(r1 == r2)
                 rook.setRow(r2)
                 rook.setCol(5)
-                self.board[r2][5] = rook
-                self.board[r2][7] = EMPTY
+                self.setPiece(r2, 5, rook)
+                self.setPiece(r2, 7, EMPTY)
             elif c2 == 2: # Kingside castling
                 rook = self.getPiece(r1, 0)
                 assert(rook.getName().upper() == 'R')
                 assert(r1 == r2)
                 rook.setRow(r2)
                 rook.setCol(3)
-                self.board[r2][3] = rook
-                self.board[r2][0] = EMPTY
+                self.setPiece(r2, 3, rook)
+                self.setPiece(r2, 0, EMPTY)
         if pieceTaken != EMPTY:
             if player == PLAYER_WHITE: 
                 self.blackPieces.remove(pieceTaken)
@@ -233,8 +273,8 @@ class Board:
         player = piece.getPlayer()
         piece.setRow(r1)
         piece.setCol(c1)
-        self.board[r1][c1] = piece
-        self.board[r2][c2] = pieceTaken
+        self.setPiece(r1, c1, piece)
+        self.setPiece(r2, c2, pieceTaken)
         if pieceTaken != EMPTY:
             if player == PLAYER_WHITE: 
                 self.blackPieces.append(pieceTaken)
@@ -401,12 +441,12 @@ class Board:
                     elif pieceType == 'r': newPiece = Rook(pieceType, r, c, player)
                     elif pieceType == 'q': newPiece = Queen(pieceType, r, c, player)
                     self.whitePieces.append(newPiece)
-                    self.board[r][c] = newPiece
+                    self.setPiece(r, c, newPiece)
                     return True
             return False
         else: 
             if pos[0] == 7: 
-                pieceType = input("Enter the piece you want to promote to from ['N', 'b', 'r', 'q']: ").upper()
+                pieceType = input("Enter the piece you want to promote to from ['N', 'B', 'R', 'Q']: ").upper()
                 if pieceType not in ['N', 'B', 'R', 'Q']: 
                     raise Exception("Invalid promotion piece type. Please try another one.")
                 else: 
@@ -418,7 +458,7 @@ class Board:
                     elif pieceType == 'R': newPiece = Rook(pieceType, r, c, player)
                     elif pieceType == 'Q': newPiece = Queen(pieceType, r, c, player)
                     self.whitePieces.append(newPiece)
-                    self.board[r][c] = newPiece
+                    self.setPiece(r, c, newPiece)
                     return True
             return False
 
@@ -534,4 +574,6 @@ if __name__ == '__main__': # some trivial tests (will implement test in formal f
     board.printBoard()
     board.move("A8", "C7") # promoted piece move
     board.printBoard()
+    print("white captives:", board.whiteCaptives)
+    print("black captives:", board.blackCaptives)
 

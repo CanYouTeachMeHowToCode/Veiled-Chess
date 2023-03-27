@@ -6,6 +6,7 @@ class Piece:
         self._row = row
         self._col = col
         self._player = player # white or black
+        self.unmoved = True # veiled (unmoved) for each piece, also for castling check for Rooks and Kings
     
     def getName(self):
         return self._name
@@ -93,7 +94,6 @@ class Pawn(Piece):
                 moves.append((x-1, y-1))
             if x-1 >= 0 and y+1 < BOARD_SIZE and GameBoard.getPiece(x-1, y+1) != EMPTY and GameBoard.getPiece(x-1, y+1).getPlayer() != self.getPlayer(): 
                 moves.append((x-1, y+1))
-            # TODO: En passant check
         elif self.getPlayer() == PLAYER_BLACK:
             x, y = self.getRow(), self.getCol() # current position
             if x+1 < BOARD_SIZE and y-1 >= 0 and GameBoard.getPiece(x+1, y-1) != EMPTY and GameBoard.getPiece(x+1, y-1).getPlayer() != self.getPlayer(): 
@@ -109,7 +109,6 @@ class Pawn(Piece):
 class Rook(Piece):
     def __init__(self, name, row, col, player):
         super().__init__(name, row, col, player)
-        self.unmoved = True # for castling check
 
     def traverse(self, GameBoard):
         normalMoves, pieceTakingMoves = [], []
@@ -213,7 +212,6 @@ class Queen(Piece):
 class King(Piece):
     def __init__(self, name, row, col, player):
         super().__init__(name, row, col, player)
-        self.unmoved = True # for castling check
         
     def traverse(self, GameBoard):
         normalMoves, pieceTakingMoves = [], []
