@@ -88,18 +88,29 @@ class Board:
     #         print(BOARD_SIZE-i)
     #     print("  A B C D E F G H")
 
+    def getPieceAsciiName(self, piece):
+        player = piece.getPlayer()
+        pieceType = piece.__class__.__name__
+        if pieceType == "Pawn": return 'p' if player == PLAYER_WHITE else 'P'
+        elif pieceType == "Rook": return 'r' if player == PLAYER_WHITE else 'R'
+        elif pieceType == "Knight": return 'n' if player == PLAYER_WHITE else 'N'
+        elif pieceType == "Bishop": return 'b' if player == PLAYER_WHITE else 'B'
+        elif pieceType == "Queen": return 'q' if player == PLAYER_WHITE else 'Q'
+        elif pieceType == "King": return 'k' if player == PLAYER_WHITE else 'K'
+
     def printBoard(self):
         print("  A B C D E F G H")
-        for i in range(BOARD_SIZE):
-            print(BOARD_SIZE-i, end=" ")
-            for j in range(BOARD_SIZE):
-                piece = self.getPiece(i, j)
-                asciiName = piece.getName() if piece != EMPTY else EMPTY
+        for r in range(BOARD_SIZE):
+            print(BOARD_SIZE-r, end=" ")
+            for c in range(BOARD_SIZE):
+                piece = self.getPiece(r, c)
+                asciiName = self.getPieceAsciiName(piece) if piece != EMPTY else EMPTY
                 unicodeSymbol = UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(asciiName)]
                 print(unicodeSymbol, end=" ")
-            print(BOARD_SIZE-i)
+            print(BOARD_SIZE-r)
         print("  A B C D E F G H")
-    
+        print("")
+
     def printRealBoard(self):
         print("  A B C D E F G H")
         for i in range(BOARD_SIZE):
@@ -147,11 +158,11 @@ class Board:
             self.undoMove((r, c), move, pieceTaken)
         # print("legalMoves: ", legalMoves)
         # legal castling moves
-        if piece.getName() == 'K': 
+        if self.getPieceAsciiName(piece) == 'K': 
             assert(self.currPlayer == PLAYER_BLACK)
             if self.canCastlingKingside(self.currPlayer): legalMoves.append((0, 6))
             elif self.canCastlingQueenside(self.currPlayer): legalMoves.append((0, 2))
-        elif piece.getName() == 'k': 
+        elif self.getPieceAsciiName(piece) == 'k': 
             assert(self.currPlayer == PLAYER_WHITE)
             if self.canCastlingKingside(self.currPlayer): legalMoves.append((7, 6))
             elif self.canCastlingQueenside(self.currPlayer): legalMoves.append((7, 2))
@@ -172,8 +183,8 @@ class Board:
             for c in range(BOARD_SIZE):
                 piece = self.getPiece(r, c)
                 if piece == EMPTY: continue
-                if (player == PLAYER_WHITE and piece.getName() == 'k') or \
-                   (player == PLAYER_BLACK and piece.getName() == 'K'):
+                if (player == PLAYER_WHITE and self.getPieceAsciiName(piece) == 'k') or \
+                   (player == PLAYER_BLACK and self.getPieceAsciiName(piece) == 'K'):
                     return (r, c)
         raise Exception("King not found.")
 
@@ -229,10 +240,10 @@ class Board:
         self.setPiece(r2, c2, piece)
         self.setPiece(r1, c1, EMPTY)
         # castling move
-        if piece.getName().upper() == 'K' and abs(c2-c1) == 2:
+        if self.getPieceAsciiName(piece).upper() == 'K' and abs(c2-c1) == 2:
             if c2 == 6: # Kingside castling
                 rook = self.getPiece(r1, 7)
-                assert(rook.getName().upper() == 'R')
+                assert(self.getPieceAsciiName(rook).upper() == 'R')
                 assert(r1 == r2)
                 rook.setRow(r2)
                 rook.setCol(5)
@@ -240,7 +251,7 @@ class Board:
                 self.setPiece(r2, 7, EMPTY)
             elif c2 == 2: # Kingside castling
                 rook = self.getPiece(r1, 0)
-                assert(rook.getName().upper() == 'R')
+                assert(self.getPieceAsciiName(rook).upper() == 'R')
                 assert(r1 == r2)
                 rook.setRow(r2)
                 rook.setCol(3)
@@ -300,13 +311,13 @@ class Board:
         Output:
             canCastle (bool): can castling kingside or not
         '''
-        return self.getPiece(0, 7) != EMPTY and self.getPiece(0, 7).getName() == 'R' and self.getPiece(0, 7).unmoved and \
-                self.getPiece(0, 4) != EMPTY and self.getPiece(0, 4).getName() == 'K' and self.getPiece(0, 4).unmoved and \
+        return self.getPiece(0, 7) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 7)) == 'R' and self.getPiece(0, 7).unmoved and \
+                self.getPiece(0, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 4)) == 'K' and self.getPiece(0, 4).unmoved and \
                 self.getPiece(0, 5) == EMPTY and not self.isThreatened(player, (0, 5)) and \
                 self.getPiece(0, 6) == EMPTY and not self.isThreatened(player, (0, 6)) \
                 if player == PLAYER_BLACK else \
-                self.getPiece(7, 7) != EMPTY and self.getPiece(7, 7).getName() == 'r' and self.getPiece(7, 7).unmoved and \
-                self.getPiece(7, 4) != EMPTY and self.getPiece(7, 4).getName() == 'k' and self.getPiece(7, 4).unmoved and \
+                self.getPiece(7, 7) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 7)) == 'r' and self.getPiece(7, 7).unmoved and \
+                self.getPiece(7, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 4)) == 'k' and self.getPiece(7, 4).unmoved and \
                 self.getPiece(7, 5) == EMPTY and not self.isThreatened(player, (7, 5)) and \
                 self.getPiece(7, 6) == EMPTY and not self.isThreatened(player, (7, 6))
 
@@ -320,13 +331,13 @@ class Board:
         Output:
             canCastle (bool): can castling queenside or not
         '''
-        return self.getPiece(0, 0) != EMPTY and self.getPiece(0, 0).getName() == 'R' and self.getPiece(0, 0).unmoved and \
-                self.getPiece(0, 4) != EMPTY and self.getPiece(0, 4).getName() == 'K' and self.getPiece(0, 4).unmoved and \
+        return self.getPiece(0, 0) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 0)) == 'R' and self.getPiece(0, 0).unmoved and \
+                self.getPiece(0, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 4)) == 'K' and self.getPiece(0, 4).unmoved and \
                 self.getPiece(0, 3) == EMPTY and not self.isThreatened(player, (0, 3)) and \
                 self.getPiece(0, 2) == EMPTY and not self.isThreatened(player, (0, 2)) and \
                 self.getPiece(0, 1) == EMPTY if player == PLAYER_BLACK else \
-                self.getPiece(7, 0) != EMPTY and self.getPiece(7, 0).getName() == 'r' and self.getPiece(7, 0).unmoved and \
-                self.getPiece(7, 4) != EMPTY and self.getPiece(7, 4).getName() == 'k' and self.getPiece(7, 4).unmoved and \
+                self.getPiece(7, 0) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 0)) == 'r' and self.getPiece(7, 0).unmoved and \
+                self.getPiece(7, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 4)) == 'k' and self.getPiece(7, 4).unmoved and \
                 self.getPiece(7, 3) == EMPTY and not self.isThreatened(player, (7, 3)) and \
                 self.getPiece(7, 2) == EMPTY and not self.isThreatened(player, (7, 2)) and \
                 self.getPiece(7, 1) == EMPTY
@@ -395,11 +406,11 @@ class Board:
             if (r2, c2) in legalMoves:
                 self.doMove((r1, c1), (r2, c2))
                 canPromote = False
-                if piece.getName().upper() == 'K' or piece.getName().upper() == 'R': piece.unmoved = False
-                if piece.getName().upper() == 'P': canPromote = self.promoteCheck(self.currPlayer, (r2, c2))
+                if self.getPieceAsciiName(piece).upper() == 'K' or self.getPieceAsciiName(piece).upper() == 'R': piece.unmoved = False
+                if self.getPieceAsciiName(piece).upper() == 'P': canPromote = self.promoteCheck(self.currPlayer, (r2, c2))
                 if canPromote: print("{pawn} promotes to {piece}".format(pawn=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(['P', 'p'][int(self.currPlayer == PLAYER_WHITE)])], \
-                                                                         piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPiece(r2, c2).getName())]))
-                else: print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(piece.getName())], start=start, end=end))
+                                                                         piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(self.getPiece(r2, c2)))]))
+                else: print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(piece))], start=start, end=end))
                 self.switchPlayer()
                 self.isGameOver()
                 if self.gameOver:
