@@ -433,6 +433,7 @@ class Board:
         newPiece.unmoved = False
         self.whitePieces.append(newPiece) if player == PLAYER_WHITE else self.blackPieces.append(newPiece)
         self.setPiece(r, c, newPiece)
+        # TODO: ensure one white-block bishop and one black-block bishop 
 
     '''
     Pawn Promotion Rules:
