@@ -4,6 +4,8 @@ if __name__ == '__main__':
     game = Board()
     print("Game start")
     game.printBoard()
+    print("Real Board: ")
+    game.printRealBoard()
     while not game.gameOver:
         print()
         print("{}'s turn".format(game.currPlayer))

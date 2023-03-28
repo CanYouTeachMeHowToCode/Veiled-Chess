@@ -34,6 +34,7 @@ Veiled chess board
 
 class Board:
     def __init__(self):
+        # Game state initialization
         self.currPlayer = PLAYER_WHITE # white start
         self.checkmate = False
         self.stalemate = False
@@ -41,52 +42,25 @@ class Board:
         self.whiteCaptives = []
         self.blackCaptives = []
 
-        # initialization
+        # Game board initialization
         whitePiecesExceptKing = 'p'*8+'r'*2+'n'*2+'b'*2+'q'
         blackPiecesExceptKing = 'P'*8+'R'*2+'N'*2+'B'*2+'Q'
         whiteShuffled = ''.join(random.sample(whitePiecesExceptKing, len(whitePiecesExceptKing)))
         blackShuffled = ''.join(random.sample(blackPiecesExceptKing, len(blackPiecesExceptKing)))
-        # self.whitePieces = [Pawn('p', 6, c, PLAYER_WHITE, whiteShuffled[c]) for c in range(BOARD_SIZE)] + \
-        #                    [Rook('r', 7, 0, PLAYER_WHITE, whiteShuffled[8]), Rook('r', 7, 7, PLAYER_WHITE, whiteShuffled[9])] + \
-        #                    [Knight('n', 7, 1, PLAYER_WHITE, whiteShuffled[10]), Knight('n', 7, 6, PLAYER_WHITE, whiteShuffled[11])] + \
-        #                    [Bishop('b', 7, 2, PLAYER_WHITE, whiteShuffled[12]), Bishop('b', 7, 5, PLAYER_WHITE, whiteShuffled[13])] + \
-        #                    [Queen('q', 7, 3, PLAYER_WHITE, whiteShuffled[14]), King('k', 7, 4, PLAYER_WHITE, 'k')]
-        # self.blackPieces = [Pawn('P', 1, c, PLAYER_BLACK, blackShuffled[c]) for c in range(BOARD_SIZE)] + \
-        #                    [Rook('R', 0, 0, PLAYER_BLACK, blackShuffled[8]), Rook('R', 0, 7, PLAYER_BLACK, blackShuffled[9])] + \
-        #                    [Knight('N', 0, 1, PLAYER_BLACK, blackShuffled[10]), Knight('N', 0, 6, PLAYER_BLACK, blackShuffled[11])] + \
-        #                    [Bishop('B', 0, 2, PLAYER_BLACK, blackShuffled[12]), Bishop('B', 0, 5, PLAYER_BLACK, blackShuffled[13])] + \
-        #                    [Queen('Q', 0, 3, PLAYER_BLACK, blackShuffled[14]), King('K', 0, 4, PLAYER_BLACK, 'K')]
-
-        self.whitePieces = [Pawn('p', 6, c, PLAYER_WHITE) for c in range(BOARD_SIZE)] + \
-                           [Rook('r', 7, 0, PLAYER_WHITE), Rook('r', 7, 7, PLAYER_WHITE)] + \
-                           [Knight('n', 7, 1, PLAYER_WHITE), Knight('n', 7, 6, PLAYER_WHITE)] + \
-                           [Bishop('b', 7, 2, PLAYER_WHITE), Bishop('b', 7, 5, PLAYER_WHITE)] + \
-                           [Queen('q', 7, 3, PLAYER_WHITE), King('k', 7, 4, PLAYER_WHITE)]
-        self.blackPieces = [Pawn('P', 1, c, PLAYER_BLACK) for c in range(BOARD_SIZE)] + \
-                           [Rook('R', 0, 0, PLAYER_BLACK), Rook('R', 0, 7, PLAYER_BLACK)] + \
-                           [Knight('N', 0, 1, PLAYER_BLACK), Knight('N', 0, 6, PLAYER_BLACK)] + \
-                           [Bishop('B', 0, 2, PLAYER_BLACK), Bishop('B', 0, 5, PLAYER_BLACK)] + \
-                           [Queen('Q', 0, 3, PLAYER_BLACK), King('K', 0, 4, PLAYER_BLACK)]
+        self.whitePieces = [Pawn(whiteShuffled[c], 6, c, PLAYER_WHITE) for c in range(BOARD_SIZE)] + \
+                           [Rook(whiteShuffled[8], 7, 0, PLAYER_WHITE), Rook(whiteShuffled[9], 7, 7, PLAYER_WHITE)] + \
+                           [Knight(whiteShuffled[10], 7, 1, PLAYER_WHITE), Knight(whiteShuffled[11], 7, 6, PLAYER_WHITE)] + \
+                           [Bishop(whiteShuffled[12], 7, 2, PLAYER_WHITE), Bishop(whiteShuffled[13], 7, 5, PLAYER_WHITE)] + \
+                           [Queen(whiteShuffled[14], 7, 3, PLAYER_WHITE), King('k', 7, 4, PLAYER_WHITE)]
+        self.blackPieces = [Pawn(blackShuffled[c], 1, c, PLAYER_BLACK) for c in range(BOARD_SIZE)] + \
+                           [Rook(blackShuffled[8], 0, 0, PLAYER_BLACK), Rook(blackShuffled[9], 0, 7, PLAYER_BLACK)] + \
+                           [Knight(blackShuffled[10], 0, 1, PLAYER_BLACK), Knight(blackShuffled[11], 0, 6, PLAYER_BLACK)] + \
+                           [Bishop(blackShuffled[12], 0, 2, PLAYER_BLACK), Bishop(blackShuffled[13], 0, 5, PLAYER_BLACK)] + \
+                           [Queen(blackShuffled[14], 0, 3, PLAYER_BLACK), King('K', 0, 4, PLAYER_BLACK)]
         
         self._board = [[EMPTY for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
         for whitePiece in self.whitePieces: self.setPiece(whitePiece.getRow(), whitePiece.getCol(), whitePiece)
         for blackPiece in self.blackPieces: self.setPiece(blackPiece.getRow(), blackPiece.getCol(), blackPiece)
-
-    # def printBoard(self): 
-    #     print("  A B C D E F G H")
-    #     for i in range(BOARD_SIZE):
-    #         print(BOARD_SIZE-i, end=" ")
-    #         for j in range(BOARD_SIZE):
-    #             asciiName = ""
-    #             piece = self.getPiece(i, j)
-    #             if piece == EMPTY: asciiName = EMPTY
-    #             elif piece.getName().upper == 'K': asciiName = piece.getName() # Kings are always unveiled
-    #             elif piece.unmoved: asciiName = 'v' if piece.getPlayer() == PLAYER_WHITE else 'V'
-    #             else: asciiName = piece.getName()
-    #             unicodeSymbol = UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(asciiName)]
-    #             print(unicodeSymbol, end=" ")
-    #         print(BOARD_SIZE-i)
-    #     print("  A B C D E F G H")
 
     def getPieceAsciiName(self, piece):
         player = piece.getPlayer()
@@ -104,7 +78,12 @@ class Board:
             print(BOARD_SIZE-r, end=" ")
             for c in range(BOARD_SIZE):
                 piece = self.getPiece(r, c)
-                asciiName = self.getPieceAsciiName(piece) if piece != EMPTY else EMPTY
+                if piece == EMPTY: asciiName = EMPTY
+                else:
+                    pieceName = self.getPieceAsciiName(piece)
+                    if pieceName.upper() == 'K': asciiName = pieceName # Kings are always unveiled
+                    elif piece.unmoved: asciiName = 'v' if piece.getPlayer() == PLAYER_WHITE else 'V'
+                    else: asciiName = pieceName
                 unicodeSymbol = UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(asciiName)]
                 print(unicodeSymbol, end=" ")
             print(BOARD_SIZE-r)
@@ -113,16 +92,17 @@ class Board:
 
     def printRealBoard(self):
         print("  A B C D E F G H")
-        for i in range(BOARD_SIZE):
-            print(BOARD_SIZE-i, end=" ")
-            for j in range(BOARD_SIZE):
+        for r in range(BOARD_SIZE):
+            print(BOARD_SIZE-r, end=" ")
+            for c in range(BOARD_SIZE):
                 asciiName = ""
-                piece = self.getPiece(i, j)
-                asciiName = piece.getRealPieceName() if piece != EMPTY else EMPTY
+                piece = self.getPiece(r, c)
+                asciiName = piece.getName() if piece != EMPTY else EMPTY
                 unicodeSymbol = UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(asciiName)]
                 print(unicodeSymbol, end=" ")
-            print(BOARD_SIZE-i)
+            print(BOARD_SIZE-c)
         print("  A B C D E F G H")
+        print("")
 
     def getPiece(self, r, c):
         if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE: return self._board[r][c]
@@ -153,9 +133,9 @@ class Board:
         # print("allLegalMovesOfThisPiece: ", allLegalMovesOfThisPiece)
         for move in allLegalMovesOfThisPiece: # we only need to check whether performing this move will not put the king in check or not
             # print("move: ", move)
-            pieceTaken = self.doMove((r, c), move)
+            pieceTaken, firstMove = self.doMove((r, c), move)
             if not self.isOnCheck(self.currPlayer): legalMoves.append(move)
-            self.undoMove((r, c), move, pieceTaken)
+            self.undoMove((r, c), move, pieceTaken, firstMove)
         # print("legalMoves: ", legalMoves)
         # legal castling moves
         if self.getPieceAsciiName(piece) == 'K': 
@@ -221,7 +201,8 @@ class Board:
     def doMove(self, start, end):
         '''
         Perform the move of pieces at start (r1, c1) position to end (r2, c2) position
-        and return the piece taken by this move if possible
+        and return the piece taken by this move if possible and whether this move is the
+        piece's first move or not
 
         Input:
             start (Tuple[int, int]): position of the piece before move
@@ -229,6 +210,7 @@ class Board:
         
         Output:
             pieceTaken (Piece or EMPTY): the piece taken if there is a piece at end or EMPTY
+            firstMove (bool): whether the move of the piece is its first move or not
         '''
         r1, c1 = start
         r2, c2 = end
@@ -239,6 +221,10 @@ class Board:
         pieceTaken = self.getPiece(r2, c2)
         self.setPiece(r2, c2, piece)
         self.setPiece(r1, c1, EMPTY)
+        if piece.unmoved: 
+            piece.unmoved = False
+            firstMove = True
+        else: firstMove = False
         # castling move
         if self.getPieceAsciiName(piece).upper() == 'K' and abs(c2-c1) == 2:
             if c2 == 6: # Kingside castling
@@ -264,9 +250,9 @@ class Board:
             else:
                 self.whitePieces.remove(pieceTaken)
                 self.blackCaptives.append(pieceTaken)
-        return pieceTaken
+        return pieceTaken, firstMove
 
-    def undoMove(self, start, end, pieceTaken):
+    def undoMove(self, start, end, pieceTaken, firstMove):
         '''
         Undo the last move by restoring the taken piece if possible and the original piece from end to start
 
@@ -274,6 +260,7 @@ class Board:
             start (Tuple[int, int]): position of the piece before move
             end (Tuple[int, int]): position of the piece after move
             pieceTaken (Piece or EMPTY): the piece taken if there is a piece at end or EMPTY
+            firstMove (bool): whether the move of the piece is its first move or not
         
         Output:
             None
@@ -293,6 +280,8 @@ class Board:
             else:
                 self.whitePieces.append(pieceTaken)
                 self.blackCaptives.pop()
+        if firstMove:
+            piece.unmoved = True
     
     '''
     Castling Rules:
@@ -404,9 +393,9 @@ class Board:
         if piece != EMPTY and self.currPlayer == piece.getPlayer():
             legalMoves = self.getLegalMove(r1, c1)
             if (r2, c2) in legalMoves:
-                self.doMove((r1, c1), (r2, c2))
+                _, firstMove = self.doMove((r1, c1), (r2, c2))
+                if firstMove: self.unveil(piece)
                 canPromote = False
-                if self.getPieceAsciiName(piece).upper() == 'K' or self.getPieceAsciiName(piece).upper() == 'R': piece.unmoved = False
                 if self.getPieceAsciiName(piece).upper() == 'P': canPromote = self.promoteCheck(self.currPlayer, (r2, c2))
                 if canPromote: print("{pawn} promotes to {piece}".format(pawn=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(['P', 'p'][int(self.currPlayer == PLAYER_WHITE)])], \
                                                                          piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(self.getPiece(r2, c2)))]))
@@ -421,6 +410,29 @@ class Board:
 
         elif piece == EMPTY: print("This square has no pieces. Please try another one.")
         else: print("You cannot move your opponent's piece. Please try another one.")
+    
+    def unveil(self, piece):
+        '''
+        Unveil the current piece to the real piece after the first move.
+
+        Input: 
+            piece (Piece): piece going to be unveiled
+        
+        Output:
+            None
+        '''
+        assert(not piece.unmoved)
+        pieceType, r, c, player = piece.getName().upper(), piece.getRow(), piece.getCol(), piece.getPlayer()
+        self.whitePieces.remove(piece) if player == PLAYER_WHITE else self.blackPieces.remove(piece)
+        if pieceType == 'P': newPiece = Pawn(pieceType, r, c, player)
+        elif pieceType == 'N': newPiece = Knight(pieceType, r, c, player)
+        elif pieceType == 'B': newPiece = Bishop(pieceType, r, c, player)
+        elif pieceType == 'R': newPiece = Rook(pieceType, r, c, player)
+        elif pieceType == 'Q': newPiece = Queen(pieceType, r, c, player)
+        else: newPiece = King(pieceType, r, c, player)
+        newPiece.unmoved = False
+        self.whitePieces.append(newPiece) if player == PLAYER_WHITE else self.blackPieces.append(newPiece)
+        self.setPiece(r, c, newPiece)
 
     '''
     Pawn Promotion Rules:
@@ -473,118 +485,121 @@ class Board:
                     return True
             return False
 
-if __name__ == '__main__': # some trivial tests (will implement test in formal format later)
-    # start
-    board = Board()
-    board.printBoard()
-    # Pawn normal move test (start 2 blocks)
-    board.move("E2", "E4")
-    board.printBoard()
-    board.move("F7", "F5")
-    board.printBoard()
-    # Pawn taking piece test
-    board.move("E4", "F5")
-    board.printBoard()
-    # Knight normal move test
-    board.move("B8", "C6")
-    board.printBoard()
-    # Bishop normal move test
-    board.move("F1", "B5")
-    board.printBoard()
-    # Rook normal move test
-    board.move("A8", "B8")
-    board.printBoard()
-    # Queen normal move test (also a check test)
-    board.move("D1", "H5")
-    board.printBoard()
-    # cannot move this Pawn since Black king is on check
-    board.move("E7", "E6")
-    board.printBoard()
-    # also cannot move the Black King since all the place the King can move to are threatened
-    board.move("E8", "F7")
-    board.printBoard()
-    # resolve check by blocking it using black Pawn
-    board.move("G7", "G6")
-    board.printBoard()
-    # King move test
-    board.move("E1", "E2")
-    board.printBoard()
 
-    # Check test
-    board.move("C6", "D4")
-    board.printBoard()
-    # cannot perform this step since white King is on check
-    board.move("B1", "C3")
-    board.printBoard()
-    # resolve check by moving the king
-    board.move("E2", "E1")
-    board.printBoard()
-    # a random move 
-    board.move("E7", "E5")
-    board.printBoard()
-    # check again
-    board.move("H5", "G6")
-    board.printBoard()
-    # resolve check by taking the threatening piece
-    board.move("H7", "G6")
-    board.printBoard()
-    # castling check 1 (white cannot castling since King has moved)
-    board.move("G1", "F3")
-    board.printBoard()
-    board.move("F8", "D6")
-    board.printBoard()
-    board.move("E1", "G1") # cannot castling
-    board.printBoard()
-    board.move("B1", "C3") 
-    board.printBoard()
-    board.move("G8", "F6") 
-    board.printBoard()
-    board.move("D2", "D3") 
-    board.printBoard()
-    board.move("E8", "G8") # can castling
-    board.printBoard()
+# if __name__ == '__main__': # some trivial tests for normal (not veiled!) chess board  (will implement test in formal format later)
+#     # start
+#     board = Board()
+#     board.printBoard()
+#     print("real board: ")
+#     board.printRealBoard()
+#     # Pawn normal move test (start 2 blocks)
+#     board.move("E2", "E4")
+#     board.printBoard()
+#     board.move("F7", "F5")
+#     board.printBoard()
+#     # Pawn taking piece test
+#     board.move("E4", "F5")
+#     board.printBoard()
+#     # Knight normal move test
+#     board.move("B8", "C6")
+#     board.printBoard()
+#     # Bishop normal move test
+#     board.move("F1", "B5")
+#     board.printBoard()
+#     # Rook normal move test
+#     board.move("A8", "B8")
+#     board.printBoard()
+#     # Queen normal move test (also a check test)
+#     board.move("D1", "H5")
+#     board.printBoard()
+#     # cannot move this Pawn since Black king is on check
+#     board.move("E7", "E6")
+#     board.printBoard()
+#     # also cannot move the Black King since all the place the King can move to are threatened
+#     board.move("E8", "F7")
+#     board.printBoard()
+#     # resolve check by blocking it using black Pawn
+#     board.move("G7", "G6")
+#     board.printBoard()
+#     # King move test
+#     board.move("E1", "E2")
+#     board.printBoard()
 
-    # Checkmate test (2-step fool's checkmate)
-    print("========================================")
-    board = Board()
-    board.printBoard()
-    board.move("G2", "G4")
-    board.printBoard()
-    board.move("E7", "E5")
-    board.printBoard()
-    board.move("F2", "F4")
-    board.printBoard()
-    board.move("D8", "H4")
-    board.printBoard()
+#     # Check test
+#     board.move("C6", "D4")
+#     board.printBoard()
+#     # cannot perform this step since white King is on check
+#     board.move("B1", "C3")
+#     board.printBoard()
+#     # resolve check by moving the king
+#     board.move("E2", "E1")
+#     board.printBoard()
+#     # a random move 
+#     board.move("E7", "E5")
+#     board.printBoard()
+#     # check again
+#     board.move("H5", "G6")
+#     board.printBoard()
+#     # resolve check by taking the threatening piece
+#     board.move("H7", "G6")
+#     board.printBoard()
+#     # castling check 1 (white cannot castling since King has moved)
+#     board.move("G1", "F3")
+#     board.printBoard()
+#     board.move("F8", "D6")
+#     board.printBoard()
+#     board.move("E1", "G1") # cannot castling
+#     board.printBoard()
+#     board.move("B1", "C3") 
+#     board.printBoard()
+#     board.move("G8", "F6") 
+#     board.printBoard()
+#     board.move("D2", "D3") 
+#     board.printBoard()
+#     board.move("E8", "G8") # can castling
+#     board.printBoard()
 
-    # Pawn promotion test 
-    print("========================================")
-    board = Board()
-    board.printBoard()
-    board.move("E2", "E4")
-    board.printBoard()
-    board.move("D7", "D5")
-    board.printBoard()
-    board.move("E4", "D5")
-    board.printBoard()
-    board.move("C7", "C6")
-    board.printBoard()
-    board.move("D5", "C6")
-    board.printBoard()
-    board.move("C8", "D7")
-    board.printBoard()
-    board.move("C6", "B7")
-    board.printBoard()
-    board.move("B8", "C6")
-    board.printBoard()
-    inputStr = io.StringIO('n') # mock input for promoting pawn to knight
-    sys.stdin = inputStr
-    board.move("B7", "A8") # promote
-    board.printBoard()
-    board.move("D8", "A5")
-    board.printBoard()
-    board.move("A8", "C7") # promoted piece move
-    board.printBoard()
-    print("white captives:", board.whiteCaptives)
-    print("black captives:", board.blackCaptives)
+#     # Checkmate test (2-step fool's checkmate)
+#     print("========================================")
+#     board = Board()
+#     board.printBoard()
+#     board.move("G2", "G4")
+#     board.printBoard()
+#     board.move("E7", "E5")
+#     board.printBoard()
+#     board.move("F2", "F4")
+#     board.printBoard()
+#     board.move("D8", "H4")
+#     board.printBoard()
+
+#     # Pawn promotion test 
+#     print("========================================")
+#     board = Board()
+#     board.printBoard()
+#     board.move("E2", "E4")
+#     board.printBoard()
+#     board.move("D7", "D5")
+#     board.printBoard()
+#     board.move("E4", "D5")
+#     board.printBoard()
+#     board.move("C7", "C6")
+#     board.printBoard()
+#     board.move("D5", "C6")
+#     board.printBoard()
+#     board.move("C8", "D7")
+#     board.printBoard()
+#     board.move("C6", "B7")
+#     board.printBoard()
+#     board.move("B8", "C6")
+#     board.printBoard()
+#     inputStr = io.StringIO('n') # mock input for promoting pawn to knight
+#     sys.stdin = inputStr
+#     board.move("B7", "A8") # promote
+#     board.printBoard()
+#     board.move("D8", "A5")
+#     board.printBoard()
+#     board.move("A8", "C7") # promoted piece move
+#     board.printBoard()
+#     print("white captives:", board.whiteCaptives)
+#     print("black captives:", board.blackCaptives)
 

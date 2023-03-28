@@ -2,7 +2,8 @@ from macro import *
 
 class Piece:
     def __init__(self, name, row, col, player):
-        self._name = name # use _{variable name} to denote protected/private instance attribute (in convention)
+        # use _{variable name} to denote protected/private instance attribute (in convention)
+        self._name = name # name of true unveiled piece
         self._row = row
         self._col = col
         self._player = player # white or black
