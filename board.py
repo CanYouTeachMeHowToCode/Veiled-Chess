@@ -339,16 +339,16 @@ class Board:
             None
         
         Output:
-            allLegalMoves (List[Tuple[int, int]]): list of (row, col) tuple that represents the 
-            board position where the piece can move to
+            allLegalMoves (List[Tuple[Tuple[int, int], Tuple[int, int]]]): list of 
+            ((startRow, startCol), (endRow, endCol)) tuple that represents the 
+            legal moves from position (startRow, startCol) to position (endRow, endCol)
         '''
         allLegalMoves = []
-        if self.currPlayer == PLAYER_WHITE:
-            for piece in self.whitePieces:
-                allLegalMoves += self.getLegalMove(piece.getRow(), piece.getCol())
-        else:
-            for piece in self.blackPieces:
-                allLegalMoves += self.getLegalMove(piece.getRow(), piece.getCol())
+        pieces = self.whitePieces if self.currPlayer == PLAYER_WHITE else self.blackPieces
+        for piece in pieces:
+            piecePos = piece.getRow(), piece.getCol()
+            legalMoves = self.getLegalMove(piecePos[0], piecePos[1])
+            for endPos in legalMoves: allLegalMoves.append((piecePos, endPos))
         return allLegalMoves
 
     def isGameOver(self):
@@ -376,19 +376,26 @@ class Board:
                 print("Stalemate!")
                 print("Tie")
             self.gameOver = True
+        else:
+            if len(self.whitePieces) == 1 and len(self.blackPieces) == 1: # only King left for each player is tie
+                print("Tie")
+                self.gameOver = True
 
     def switchPlayer(self):
         self.currPlayer = PLAYER_BLACK if self.currPlayer == PLAYER_WHITE else PLAYER_WHITE
 
-    def convertPosition(self, position): # for terminal version used only
+    def convertTupleToCoord(self, position): # for terminal version used only (for simulation)
+        return chr(ord('A')+position[1])+str(BOARD_SIZE-position[0])
+    
+    def convertCoordToTuple(self, position): # for terminal version used only
         letter = position[0].upper()
         number = BOARD_SIZE-int(position[1])
         if letter not in "ABCDEFGH" or number not in range(BOARD_SIZE): return -1, -1
         return number, ord(letter)-ord('A')
     
     def move(self, start, end): # for terminal version used only
-        r1, c1 = self.convertPosition(start)
-        r2, c2 = self.convertPosition(end)
+        r1, c1 = self.convertCoordToTuple(start)
+        r2, c2 = self.convertCoordToTuple(end)
         piece = self.getPiece(r1, c1)
         if piece != EMPTY and self.currPlayer == piece.getPlayer():
             legalMoves = self.getLegalMove(r1, c1)
@@ -476,18 +483,25 @@ class Board:
                 else: 
                     piece = self.getPiece(pos[0], pos[1])
                     r, c = piece.getRow(), piece.getCol()
-                    self.whitePieces.remove(piece)
+                    self.blackPieces.remove(piece)
                     if pieceType == 'N': newPiece = Knight(pieceType, r, c, player)
                     elif pieceType == 'B': newPiece = Bishop(pieceType, r, c, player)
                     elif pieceType == 'R': newPiece = Rook(pieceType, r, c, player)
                     elif pieceType == 'Q': newPiece = Queen(pieceType, r, c, player)
-                    self.whitePieces.append(newPiece)
+                    self.blackPieces.append(newPiece)
                     self.setPiece(r, c, newPiece)
                     return True
             return False
 
 
-# if __name__ == '__main__': # some trivial tests for normal (not veiled!) chess board  (will implement test in formal format later)
+if __name__ == '__main__': # some trivial tests for normal (not veiled!) chess board  (will implement test in formal format later)
+    board = Board()
+    board.printBoard()
+    assert(board.convertTupleToCoord((4, 4)) == "E4")
+    assert(board.convertTupleToCoord((0, 7)) == "H8")
+    assert(board.convertTupleToCoord((7, 0)) == "A1")
+    print("real board: ")
+    board.printRealBoard()
 #     # start
 #     board = Board()
 #     board.printBoard()
