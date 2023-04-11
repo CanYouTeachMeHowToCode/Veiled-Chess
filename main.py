@@ -13,3 +13,4 @@ if __name__ == '__main__':
         end = input("Enter ending position: ")
         game.move(start, end)
         game.printBoard()
+        

@@ -1,5 +1,5 @@
 from board import Board
-import random
+from ai import AI
 
 def simulate(numGame=10):
     for i in range(numGame):
@@ -13,9 +13,8 @@ def simulate(numGame=10):
         while not game.gameOver:
             print()
             print("{}'s turn".format(game.currPlayer))
-            moves = game.getAllLegalMoves()
-            print(moves)
-            start, end = random.choice(moves)
+            noviceAI = AI(game, 0)
+            start, end = noviceAI.move()
             start, end = game.convertTupleToCoord(start), game.convertTupleToCoord(end)
             gameLog.append((start, end))
             game.move(start, end)
