@@ -392,7 +392,7 @@ class Board:
         number = BOARD_SIZE-int(position[1])
         if letter not in "ABCDEFGH" or number not in range(BOARD_SIZE): return -1, -1
         return number, ord(letter)-ord('A')
-    
+
     def move(self, start, end): # for terminal version used only
         r1, c1 = self.convertCoordToTuple(start)
         r2, c2 = self.convertCoordToTuple(end)
@@ -402,6 +402,7 @@ class Board:
             if (r2, c2) in legalMoves:
                 _, firstMove = self.doMove((r1, c1), (r2, c2))
                 if firstMove: self.unveil(piece)
+                # pawn promotion check
                 canPromote = False
                 if self.getPieceAsciiName(piece).upper() == 'P': canPromote = self.promoteCheck(self.currPlayer, (r2, c2))
                 if canPromote: print("{pawn} promotes to {piece}".format(pawn=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(['P', 'p'][int(self.currPlayer == PLAYER_WHITE)])], \
@@ -417,7 +418,7 @@ class Board:
 
         elif piece == EMPTY: print("This square has no pieces. Please try another one.")
         else: print("You cannot move your opponent's piece. Please try another one.")
-    
+
     def unveil(self, piece):
         '''
         Unveil the current piece to the real piece after the first move.
@@ -440,7 +441,6 @@ class Board:
         newPiece.unmoved = False
         self.whitePieces.append(newPiece) if player == PLAYER_WHITE else self.blackPieces.append(newPiece)
         self.setPiece(r, c, newPiece)
-        # TODO: ensure one white-block bishop and one black-block bishop 
 
     '''
     Pawn Promotion Rules:
