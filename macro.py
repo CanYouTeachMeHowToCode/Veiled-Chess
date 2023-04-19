@@ -6,3 +6,4 @@ PLAYER_WHITE = 'white'
 PLAYER_BLACK = 'black'
 BOARD_SIZE = 8
 EMPTY = '.'
+LICHESS_API_TOKEN = 'lip_u9f1CLPW8jOS2uGVUaya'

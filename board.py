@@ -41,6 +41,8 @@ class Board:
         self.gameOver = False
         self.whiteCaptives = []
         self.blackCaptives = []
+        self.gameLog = [] # game log
+        self.numFullMoves = 1 # number of full moves, starts at 1 and is incremented after Black's move
 
         # Game board initialization
         whitePiecesExceptKing = 'p'*8+'r'*2+'n'*2+'b'*2+'q'
@@ -62,6 +64,13 @@ class Board:
         for whitePiece in self.whitePieces: self.setPiece(whitePiece.getRow(), whitePiece.getCol(), whitePiece)
         for blackPiece in self.blackPieces: self.setPiece(blackPiece.getRow(), blackPiece.getCol(), blackPiece)
 
+    def getPiece(self, r, c):
+        if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE: return self._board[r][c]
+        raise Exception("Out of bounds")
+
+    def setPiece(self, r, c, piece):
+        self._board[r][c] = piece
+
     def getPieceAsciiName(self, piece):
         player = piece.getPlayer()
         pieceType = piece.__class__.__name__
@@ -71,6 +80,31 @@ class Board:
         elif pieceType == "Bishop": return 'b' if player == PLAYER_WHITE else 'B'
         elif pieceType == "Queen": return 'q' if player == PLAYER_WHITE else 'Q'
         elif pieceType == "King": return 'k' if player == PLAYER_WHITE else 'K'
+
+    def getSuperficialBoard(self):
+        '''
+        Get the current "superficial" board--the board that treats unveiled pieces 
+        as the pieces they currently is; e.g. an unveiled white Queen piece at the 
+        second rank will be treated as a pawn; also note that the cases of the characters 
+        that represent pieces are reversed to match with FEN notation standard (white
+        pieces are uppercases and black pieces are lowercases)
+
+        Input: 
+            None
+
+        Output:
+            board (List[List[String]]): superficial board of the current game state
+        '''
+        board = []
+        for r in range(BOARD_SIZE):
+            row = []
+            for c in range(BOARD_SIZE):
+                piece = self.getPiece(r, c)
+                asciiName = EMPTY if piece == EMPTY else self.getPieceAsciiName(piece)
+                asciiName = asciiName.upper() if asciiName.islower() else asciiName.lower()
+                row.append(asciiName)
+            board.append(row)
+        return board
 
     def printBoard(self):
         print("  A B C D E F G H")
@@ -103,13 +137,6 @@ class Board:
             print(BOARD_SIZE-c)
         print("  A B C D E F G H")
         print("")
-
-    def getPiece(self, r, c):
-        if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE: return self._board[r][c]
-        raise Exception("Out of bounds")
-
-    def setPiece(self, r, c, piece):
-        self._board[r][c] = piece
 
     def getLegalMove(self, r, c):
         '''
@@ -290,6 +317,38 @@ class Board:
     3. The king is not currently in check.
     4. The king does not pass through or finish on a square that is attacked by an enemy piece.
     '''
+    def canCastlingKingsideFEN(self, player):
+        '''
+        Check whether the current player can castling kingside using the FEN notation rule
+
+        Input:
+            player (String): current player
+        
+        Output:
+            canCastle (bool): can castling kingside or not
+        '''
+        return self.getPiece(0, 7) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 7)) == 'R' and self.getPiece(0, 7).unmoved and \
+                self.getPiece(0, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 4)) == 'K' and self.getPiece(0, 4).unmoved \
+                if player == PLAYER_BLACK else \
+                self.getPiece(7, 7) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 7)) == 'r' and self.getPiece(7, 7).unmoved and \
+                self.getPiece(7, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 4)) == 'k' and self.getPiece(7, 4).unmoved
+    
+    def canCastlingQueensideFEN(self, player):
+        '''
+        Check whether the current player can castling queenside using the FEN notation rule
+
+        Input:
+            player (String): current player
+        
+        Output:
+            canCastle (bool): can castling queenside or not
+        '''
+        return self.getPiece(0, 0) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 0)) == 'R' and self.getPiece(0, 0).unmoved and \
+                self.getPiece(0, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 4)) == 'K' and self.getPiece(0, 4).unmoved \
+                if player == PLAYER_BLACK else \
+                self.getPiece(7, 0) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 0)) == 'r' and self.getPiece(7, 0).unmoved and \
+                self.getPiece(7, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 4)) == 'k' and self.getPiece(7, 4).unmoved
+    
     def canCastlingKingside(self, player):
         '''
         Check whether the current player can castling kingside
@@ -300,13 +359,10 @@ class Board:
         Output:
             canCastle (bool): can castling kingside or not
         '''
-        return self.getPiece(0, 7) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 7)) == 'R' and self.getPiece(0, 7).unmoved and \
-                self.getPiece(0, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 4)) == 'K' and self.getPiece(0, 4).unmoved and \
+        return self.canCastlingKingsideFEN(player) and \
                 self.getPiece(0, 5) == EMPTY and not self.isThreatened(player, (0, 5)) and \
                 self.getPiece(0, 6) == EMPTY and not self.isThreatened(player, (0, 6)) \
-                if player == PLAYER_BLACK else \
-                self.getPiece(7, 7) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 7)) == 'r' and self.getPiece(7, 7).unmoved and \
-                self.getPiece(7, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 4)) == 'k' and self.getPiece(7, 4).unmoved and \
+                if player == PLAYER_BLACK else self.canCastlingKingsideFEN(player) and \
                 self.getPiece(7, 5) == EMPTY and not self.isThreatened(player, (7, 5)) and \
                 self.getPiece(7, 6) == EMPTY and not self.isThreatened(player, (7, 6))
 
@@ -320,13 +376,11 @@ class Board:
         Output:
             canCastle (bool): can castling queenside or not
         '''
-        return self.getPiece(0, 0) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 0)) == 'R' and self.getPiece(0, 0).unmoved and \
-                self.getPiece(0, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 4)) == 'K' and self.getPiece(0, 4).unmoved and \
+        return self.canCastlingQueensideFEN(player) and \
                 self.getPiece(0, 3) == EMPTY and not self.isThreatened(player, (0, 3)) and \
                 self.getPiece(0, 2) == EMPTY and not self.isThreatened(player, (0, 2)) and \
                 self.getPiece(0, 1) == EMPTY if player == PLAYER_BLACK else \
-                self.getPiece(7, 0) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 0)) == 'r' and self.getPiece(7, 0).unmoved and \
-                self.getPiece(7, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 4)) == 'k' and self.getPiece(7, 4).unmoved and \
+                self.canCastlingQueensideFEN(player) and \
                 self.getPiece(7, 3) == EMPTY and not self.isThreatened(player, (7, 3)) and \
                 self.getPiece(7, 2) == EMPTY and not self.isThreatened(player, (7, 2)) and \
                 self.getPiece(7, 1) == EMPTY
@@ -409,6 +463,8 @@ class Board:
                                                                          piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(self.getPiece(r2, c2)))]))
                 else: print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(piece))], start=start, end=end))
                 self.switchPlayer()
+                if self.currPlayer == PLAYER_WHITE: self.numFullMoves += 1
+                self.gameLog.append((start, end))
                 self.isGameOver()
                 if self.gameOver:
                     print("Game Over!")
