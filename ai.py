@@ -1,5 +1,6 @@
 # AI agent using deep learning & non-deep learning approaches
 import random
+import chess.engine
 from board import Board
 from macro import *
 
@@ -17,7 +18,6 @@ class AI():
     
     def boardToFEN(self): 
         board = self.GameBoard.getSuperficialBoard()
-        print(board)
         fen = ''
         emptyCount = 0
         for r in range(BOARD_SIZE):
@@ -50,11 +50,19 @@ class AI():
         fen += str(self.GameBoard.numFullMoves)
         return fen
 
-    def evaluate(self):
-        pass
+    def evaluate(self, t=0.1):
+        fen = self.boardToFEN()
+        engine = chess.engine.SimpleEngine.popen_uci("/usr/local/bin/stockfish")
+        board = chess.Board(fen)
+        info = engine.analyse(board, chess.engine.Limit(time=t))
+        score = info["score"].white().score()
+        print(f"score: {score}")
+        engine.quit()
+        return score
 
 if __name__ == '__main__':
     board = Board()
     ai = AI(board, 0)
     fen = ai.boardToFEN()
     assert(fen) == 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    ai.evaluate()

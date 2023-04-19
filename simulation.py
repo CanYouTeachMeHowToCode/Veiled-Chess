@@ -4,23 +4,21 @@ from ai import AI
 def simulate(numGame=10):
     for i in range(numGame):
         print(f"================== Game {i} ==================".format(i+1))
-        game = Board()
+        GameBoard = Board()
         print("Game start")
-        game.printBoard()
+        GameBoard.printBoard()
         print("Real Board: ")
-        game.printRealBoard()
-        gameLog = []
-        while not game.gameOver:
+        GameBoard.printRealBoard()
+        while not GameBoard.gameOver:
             print()
-            print("{}'s turn".format(game.currPlayer))
-            noviceAI = AI(game, 0)
+            print("{}'s turn".format(GameBoard.currPlayer))
+            noviceAI = AI(GameBoard, 0)
             start, end = noviceAI.move()
-            start, end = game.convertTupleToCoord(start), game.convertTupleToCoord(end)
-            gameLog.append((start, end))
-            game.move(start, end)
-            game.printBoard()
+            start, end = GameBoard.convertTupleToCoord(start), GameBoard.convertTupleToCoord(end)
+            GameBoard.move(start, end)
+            GameBoard.printBoard()
         print("Game Log:")
-        print(gameLog)
+        print(GameBoard.gameLog)
 
 if __name__ == '__main__':
     simulate()
