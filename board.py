@@ -1,7 +1,5 @@
 from macro import *
 from piece import *
-import sys
-import io
 import random
 
 '''
@@ -86,7 +84,7 @@ class Board:
         Get the current "superficial" board--the board that treats unveiled pieces 
         as the pieces they currently is; e.g. an unveiled white Queen piece at the 
         second rank will be treated as a pawn; also note that the cases of the characters 
-        that represent pieces are reversed to match with FEN notation standard (white
+        that represent pieces are reversed to match with FEN standard (white
         pieces are uppercases and black pieces are lowercases)
 
         Input: 
@@ -105,7 +103,87 @@ class Board:
                 row.append(asciiName)
             board.append(row)
         return board
+    
+    def getProbabilityOfVeiledPiece(self, piece):
+        '''
+        Compute the probability of the current veiled piece to become every type
+        of pieces except King after unveiling; the probability of a certain veiled 
+        piece that unveiled to a piece with type t is computed as follows:
+        P(veiledPieceType=t) = ([# of veiled pieces with type t of the player]/[# of all veiled pieces of the player]) 
+                             = ([# of pieces with type t in standard start state] -
+                                [# of unveiled pieces with type t currently on board] -
+                                [# of unveiled pieces with type t captured by opponent]/
+                               ([# of veiled pieces currently on board] +
+                                [# of veiled pieces captured by opponent]) (every piece here refers to the pieces of the same player)
 
+        Input:
+            piece (Piece): the veiled piece that is going to be unveiled in the next move
+
+        Output:
+            outputProbs (List[float]): the list of probabilities that has length equals to 5 and 
+            the probability of unveil to Pawn, Rook, Knight, Bishop, and Queen from
+            start to end respectively
+        '''
+        assert(piece.unmoved)
+        pieceTypes = ['P', 'R', 'N', 'B', 'Q']
+        pieceNums = [8, 2, 2, 2, 1] # number of veiled pieces (either captured or not captured) for each type of piece
+        numVeiledPieces = 0 # number of veiled pieces of the player in total
+        player = piece.getPlayer()
+        pieces = self.whitePieces+self.blackCaptives if player == PLAYER_WHITE else self.blackPieces+self.whiteCaptives
+        for piece in pieces:
+            pieceType = piece.getName().upper()
+            if pieceType == 'K': continue # do not consider King here
+            if not piece.unmoved: pieceNums[pieceTypes.index(pieceType)] -= 1 # unveiled 
+            else: numVeiledPieces += 1 # veiled     
+         
+        print(f"pieceNums: {pieceNums}")
+        print(f"numVeiledPieces: {numVeiledPieces}")
+        assert(sum(pieceNums) == numVeiledPieces)
+        return list(map(lambda x:x/numVeiledPieces, pieceNums))
+
+    def boardToFEN(self): 
+        '''
+        Get the FEN (Forsyth-Edwards Notation) of the current game state
+
+        Input: 
+            None
+
+        Output:
+            String: FEN string of current board
+        '''
+        board = self.getSuperficialBoard()
+        fen = ''
+        emptyCount = 0
+        for r in range(BOARD_SIZE):
+            for c in range(BOARD_SIZE):
+                if board[r][c] == EMPTY: emptyCount += 1
+                else:
+                    if emptyCount > 0:
+                        fen += str(emptyCount)
+                        emptyCount = 0
+                    fen += board[r][c]
+            if emptyCount > 0:
+                fen += str(emptyCount)
+                emptyCount = 0
+            fen += '/'
+        fen = fen[:-1]  # remove last '/'
+        fen += ' '
+        fen += 'w' if self.currPlayer == PLAYER_WHITE else 'b'
+        fen += ' '
+        castlingRights = ''
+        if self.canCastlingKingsideFEN(PLAYER_WHITE): castlingRights += 'K'
+        if self.canCastlingQueensideFEN(PLAYER_WHITE): castlingRights += 'Q'
+        if self.canCastlingKingsideFEN(PLAYER_BLACK): castlingRights += 'k'
+        if self.canCastlingQueensideFEN(PLAYER_BLACK): castlingRights += 'q'
+        fen += castlingRights if castlingRights != '' else '-'
+        fen += ' '
+        fen += '-' # no en passant rule in veiled chess 
+        fen += ' '
+        fen += '0' # no half move clock rule in veiled chess
+        fen += ' '
+        fen += str(self.numFullMoves)
+        return fen
+    
     def printBoard(self):
         print("  A B C D E F G H")
         for r in range(BOARD_SIZE):
@@ -550,7 +628,7 @@ class Board:
             return False
 
 
-if __name__ == '__main__': # some trivial tests for normal (not veiled!) chess board  (will implement test in formal format later)
+if __name__ == '__main__': # some trivial tests for (will implement test in formal format later)
     board = Board()
     board.printBoard()
     assert(board.convertTupleToCoord((4, 4)) == "E4")
@@ -558,119 +636,33 @@ if __name__ == '__main__': # some trivial tests for normal (not veiled!) chess b
     assert(board.convertTupleToCoord((7, 0)) == "A1")
     print("real board: ")
     board.printRealBoard()
-#     # start
-#     board = Board()
-#     board.printBoard()
-#     print("real board: ")
-#     board.printRealBoard()
-#     # Pawn normal move test (start 2 blocks)
-#     board.move("E2", "E4")
-#     board.printBoard()
-#     board.move("F7", "F5")
-#     board.printBoard()
-#     # Pawn taking piece test
-#     board.move("E4", "F5")
-#     board.printBoard()
-#     # Knight normal move test
-#     board.move("B8", "C6")
-#     board.printBoard()
-#     # Bishop normal move test
-#     board.move("F1", "B5")
-#     board.printBoard()
-#     # Rook normal move test
-#     board.move("A8", "B8")
-#     board.printBoard()
-#     # Queen normal move test (also a check test)
-#     board.move("D1", "H5")
-#     board.printBoard()
-#     # cannot move this Pawn since Black king is on check
-#     board.move("E7", "E6")
-#     board.printBoard()
-#     # also cannot move the Black King since all the place the King can move to are threatened
-#     board.move("E8", "F7")
-#     board.printBoard()
-#     # resolve check by blocking it using black Pawn
-#     board.move("G7", "G6")
-#     board.printBoard()
-#     # King move test
-#     board.move("E1", "E2")
-#     board.printBoard()
+    
+    veiledWhitePawn = board.getPiece(6, 4) # E2 
+    probs = board.getProbabilityOfVeiledPiece(veiledWhitePawn)
+    print(probs)
+    board.move('E2', 'E4')
+    board.printBoard()
 
-#     # Check test
-#     board.move("C6", "D4")
-#     board.printBoard()
-#     # cannot perform this step since white King is on check
-#     board.move("B1", "C3")
-#     board.printBoard()
-#     # resolve check by moving the king
-#     board.move("E2", "E1")
-#     board.printBoard()
-#     # a random move 
-#     board.move("E7", "E5")
-#     board.printBoard()
-#     # check again
-#     board.move("H5", "G6")
-#     board.printBoard()
-#     # resolve check by taking the threatening piece
-#     board.move("H7", "G6")
-#     board.printBoard()
-#     # castling check 1 (white cannot castling since King has moved)
-#     board.move("G1", "F3")
-#     board.printBoard()
-#     board.move("F8", "D6")
-#     board.printBoard()
-#     board.move("E1", "G1") # cannot castling
-#     board.printBoard()
-#     board.move("B1", "C3") 
-#     board.printBoard()
-#     board.move("G8", "F6") 
-#     board.printBoard()
-#     board.move("D2", "D3") 
-#     board.printBoard()
-#     board.move("E8", "G8") # can castling
-#     board.printBoard()
+    veiledBlackPawn = board.getPiece(1, 4) # E7
+    probs = board.getProbabilityOfVeiledPiece(veiledBlackPawn)
+    print(probs)
+    board.move('E7', 'E5')
+    board.printBoard()
 
-#     # Checkmate test (2-step fool's checkmate)
-#     print("========================================")
-#     board = Board()
-#     board.printBoard()
-#     board.move("G2", "G4")
-#     board.printBoard()
-#     board.move("E7", "E5")
-#     board.printBoard()
-#     board.move("F2", "F4")
-#     board.printBoard()
-#     board.move("D8", "H4")
-#     board.printBoard()
+    veiledWhiteQueen = board.getPiece(7, 3) # D1
+    probs = board.getProbabilityOfVeiledPiece(veiledWhiteQueen)
+    print(probs)
+    board.move('D1', 'H5')
+    board.printBoard()
 
-#     # Pawn promotion test 
-#     print("========================================")
-#     board = Board()
-#     board.printBoard()
-#     board.move("E2", "E4")
-#     board.printBoard()
-#     board.move("D7", "D5")
-#     board.printBoard()
-#     board.move("E4", "D5")
-#     board.printBoard()
-#     board.move("C7", "C6")
-#     board.printBoard()
-#     board.move("D5", "C6")
-#     board.printBoard()
-#     board.move("C8", "D7")
-#     board.printBoard()
-#     board.move("C6", "B7")
-#     board.printBoard()
-#     board.move("B8", "C6")
-#     board.printBoard()
-#     inputStr = io.StringIO('n') # mock input for promoting pawn to knight
-#     sys.stdin = inputStr
-#     board.move("B7", "A8") # promote
-#     board.printBoard()
-#     board.move("D8", "A5")
-#     board.printBoard()
-#     board.move("A8", "C7") # promoted piece move
-#     board.printBoard()
-#     print("white captives:", board.whiteCaptives)
-#     print("black captives:", board.blackCaptives)
+    veiledBlackBishop = board.getPiece(0, 5) # F8
+    probs = board.getProbabilityOfVeiledPiece(veiledBlackBishop)
+    print(probs)
+    board.move('F8', 'B4')
+    board.printBoard()
 
+    veiledWhiteBishop = board.getPiece(7, 5) # F1
+    probs = board.getProbabilityOfVeiledPiece(veiledWhiteBishop)
+    print(probs)
+    board.move('F1', 'C4')
+    board.printBoard()

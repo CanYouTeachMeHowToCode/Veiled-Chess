@@ -13,7 +13,7 @@ def simulate(numGame=10):
             print()
             print("{}'s turn".format(GameBoard.currPlayer))
             noviceAI = AI(GameBoard, 0)
-            start, end = noviceAI.move()
+            start, end = noviceAI.nextMove()
             start, end = GameBoard.convertTupleToCoord(start), GameBoard.convertTupleToCoord(end)
             GameBoard.move(start, end)
             GameBoard.printBoard()

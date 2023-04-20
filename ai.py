@@ -12,46 +12,24 @@ class AI():
     def getLegalMoves(self):
         return self.GameBoard.getAllLegalMoves()
 
-    def move(self):
-        legalMoves = self.getLegalMoves()
-        if self.level == 'novice': return random.choice(legalMoves)
+    def nextMove(self):
+        if self.level == 'novice': return self.noviceAIMove()
+        elif self.level == 'competent': return self.competentAIMove()
     
-    def boardToFEN(self): 
-        board = self.GameBoard.getSuperficialBoard()
-        fen = ''
-        emptyCount = 0
-        for r in range(BOARD_SIZE):
-            for c in range(BOARD_SIZE):
-                if board[r][c] == EMPTY: emptyCount += 1
-                else:
-                    if emptyCount > 0:
-                        fen += str(emptyCount)
-                        emptyCount = 0
-                    fen += board[r][c]
-            if emptyCount > 0:
-                fen += str(emptyCount)
-                emptyCount = 0
-            fen += '/'
-        fen = fen[:-1]  # remove last '/'
-        fen += ' '
-        fen += 'w' if self.GameBoard.currPlayer == PLAYER_WHITE else 'b'
-        fen += ' '
-        castlingRights = ''
-        if self.GameBoard.canCastlingKingsideFEN(PLAYER_WHITE): castlingRights += 'K'
-        if self.GameBoard.canCastlingQueensideFEN(PLAYER_WHITE): castlingRights += 'Q'
-        if self.GameBoard.canCastlingKingsideFEN(PLAYER_BLACK): castlingRights += 'k'
-        if self.GameBoard.canCastlingQueensideFEN(PLAYER_BLACK): castlingRights += 'q'
-        fen += castlingRights if castlingRights != '' else '-'
-        fen += ' '
-        fen += '-' # no en passant rule in veiled chess 
-        fen += ' '
-        fen += '0' # no half move clock rule in veiled chess
-        fen += ' '
-        fen += str(self.GameBoard.numFullMoves)
-        return fen
+    def noviceAIMove(self):
+        '''
+        Novice level AI move--just random choice of all legal moves
+
+        Input:
+            None
+
+        Output:
+            move (Tuple[Tuple[int, int], Tuple[int, int]]): best move from AI agent
+        '''
+        return random.choice(self.getLegalMoves())
 
     def evaluate(self, t=0.1):
-        fen = self.boardToFEN()
+        fen = self.GameBoard.boardToFEN()
         engine = chess.engine.SimpleEngine.popen_uci("/usr/local/bin/stockfish")
         board = chess.Board(fen)
         info = engine.analyse(board, chess.engine.Limit(time=t))
@@ -59,10 +37,32 @@ class AI():
         print(f"score: {score}")
         engine.quit()
         return score
+    
+    def competentAIMove(self):
+        '''
+        Competent level AI move--evaluated best moves with expectiMax algorithm and stockfish board evaluation
+
+        Input:
+            None
+
+        Output:
+            move (Tuple[Tuple[int, int], Tuple[int, int]]): best move from AI agent
+        '''
+        pass
 
 if __name__ == '__main__':
     board = Board()
     ai = AI(board, 0)
-    fen = ai.boardToFEN()
+    fen = board.boardToFEN()
     assert(fen) == 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    ai.evaluate()
+    move1 = ('E2', 'E4')
+    board.move(move1[0], move1[1]) # can be different pieces after unveiling
+    fen = board.boardToFEN()
+    print(fen)
+    ai.evaluate()
+    move2 = ('E7', 'E5')
+    board.move(move2[0], move2[1]) # can be different pieces after unveiling
+    fen = board.boardToFEN()
+    print(fen)
     ai.evaluate()
