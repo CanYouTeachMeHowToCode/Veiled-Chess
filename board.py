@@ -79,19 +79,28 @@ class Board:
         elif pieceType == "Queen": return 'q' if player == PLAYER_WHITE else 'Q'
         elif pieceType == "King": return 'k' if player == PLAYER_WHITE else 'K'
 
-    def getSuperficialBoard(self):
+    def makePiece(self, pieceType, r, c, player):
+        if pieceType == 'P': newPiece = Pawn(pieceType, r, c, player)
+        elif pieceType == 'N': newPiece = Knight(pieceType, r, c, player)
+        elif pieceType == 'B': newPiece = Bishop(pieceType, r, c, player)
+        elif pieceType == 'R': newPiece = Rook(pieceType, r, c, player)
+        elif pieceType == 'Q': newPiece = Queen(pieceType, r, c, player)
+        else: newPiece = King(pieceType, r, c, player)
+        return newPiece
+
+    def getProvisionalBoard(self):
         '''
-        Get the current "superficial" board--the board that treats unveiled pieces 
-        as the pieces they currently is; e.g. an unveiled white Queen piece at the 
-        second rank will be treated as a pawn; also note that the cases of the characters 
-        that represent pieces are reversed to match with FEN standard (white
-        pieces are uppercases and black pieces are lowercases)
+        Get the current "provisional" board--the board that treats unveiled pieces 
+        as the pieces they currently is, as well as the state of the board; 
+        e.g. an unveiled white Queen piece at the second rank will be treated as a pawn; 
+        also note that the cases of the characters that represent pieces are reversed 
+        to match with FEN standard (white pieces are uppercases and black pieces are lowercases)
 
         Input: 
             None
 
         Output:
-            board (List[List[String]]): superficial board of the current game state
+            board (List[List[str]]): provisional board of the current game state
         '''
         board = []
         for r in range(BOARD_SIZE):
@@ -135,12 +144,9 @@ class Board:
             if pieceType == 'K': continue # do not consider King here
             if not piece.unmoved: pieceNums[pieceTypes.index(pieceType)] -= 1 # unveiled 
             else: numVeiledPieces += 1 # veiled     
-         
-        print(f"pieceNums: {pieceNums}")
-        print(f"numVeiledPieces: {numVeiledPieces}")
         assert(sum(pieceNums) == numVeiledPieces)
         return list(map(lambda x:x/numVeiledPieces, pieceNums))
-
+    
     def boardToFEN(self): 
         '''
         Get the FEN (Forsyth-Edwards Notation) of the current game state
@@ -149,9 +155,9 @@ class Board:
             None
 
         Output:
-            String: FEN string of current board
+            fen (str): FEN string of current board
         '''
-        board = self.getSuperficialBoard()
+        board = self.getProvisionalBoard()
         fen = ''
         emptyCount = 0
         for r in range(BOARD_SIZE):
@@ -258,7 +264,7 @@ class Board:
         Get the current location of the King piece of the current player on the board.
 
         Input:
-            player (String): current player
+            player (str): current player
             board (List[List[Piece]]): 2d list of piece that represents the current board
         
         Output:
@@ -278,7 +284,7 @@ class Board:
         Check if the piece at position of current player is directly threatened by any of the enemy pieces
 
         Input:
-            player (String): current player
+            player (str): current player
             position (Tuple[int, int]): tuple of piece position
         
         Output:
@@ -295,7 +301,7 @@ class Board:
         is directly threatened by any of the enemy pieces)
 
         Input:
-            player (String): current player
+            player (str): current player
         
         Output:
             isOnCheck (bool): whether current player is on check or not on the board
@@ -400,7 +406,7 @@ class Board:
         Check whether the current player can castling kingside using the FEN notation rule
 
         Input:
-            player (String): current player
+            player (str): current player
         
         Output:
             canCastle (bool): can castling kingside or not
@@ -416,7 +422,7 @@ class Board:
         Check whether the current player can castling queenside using the FEN notation rule
 
         Input:
-            player (String): current player
+            player (str): current player
         
         Output:
             canCastle (bool): can castling queenside or not
@@ -432,7 +438,7 @@ class Board:
         Check whether the current player can castling kingside
 
         Input:
-            player (String): current player
+            player (str): current player
         
         Output:
             canCastle (bool): can castling kingside or not
@@ -449,7 +455,7 @@ class Board:
         Check whether the current player can castling queenside
 
         Input:
-            player (String): current player
+            player (str): current player
         
         Output:
             canCastle (bool): can castling queenside or not
@@ -525,7 +531,7 @@ class Board:
         if letter not in "ABCDEFGH" or number not in range(BOARD_SIZE): return -1, -1
         return number, ord(letter)-ord('A')
 
-    def move(self, start, end): # for terminal version used only
+    def move(self, start, end, verbose): # for terminal version used only
         r1, c1 = self.convertCoordToTuple(start)
         r2, c2 = self.convertCoordToTuple(end)
         piece = self.getPiece(r1, c1)
@@ -537,17 +543,19 @@ class Board:
                 # pawn promotion check
                 canPromote = False
                 if self.getPieceAsciiName(piece).upper() == 'P': canPromote = self.promoteCheck(self.currPlayer, (r2, c2))
-                if canPromote: print("{pawn} promotes to {piece}".format(pawn=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(['P', 'p'][int(self.currPlayer == PLAYER_WHITE)])], \
-                                                                         piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(self.getPiece(r2, c2)))]))
-                else: print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(piece))], start=start, end=end))
+                if verbose:
+                    if canPromote: print("{pawn} promotes to {piece}".format(pawn=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(['P', 'p'][int(self.currPlayer == PLAYER_WHITE)])], \
+                                                                            piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(self.getPiece(r2, c2)))]))
+                    else: print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(piece))], start=start, end=end))
                 self.switchPlayer()
                 if self.currPlayer == PLAYER_WHITE: self.numFullMoves += 1
                 self.gameLog.append((start, end))
                 self.isGameOver()
                 if self.gameOver:
-                    print("Game Over!")
+                    if verbose: print("Game Over!")
                     return 
-                elif self.isOnCheck(self.currPlayer): print("check!")
+                elif self.isOnCheck(self.currPlayer): 
+                    if verbose: print("check!")
             else: print("Invalid move. Please try another one.")
 
         elif piece == EMPTY: print("This square has no pieces. Please try another one.")
@@ -566,13 +574,8 @@ class Board:
         assert(not piece.unmoved)
         pieceType, r, c, player = piece.getName().upper(), piece.getRow(), piece.getCol(), piece.getPlayer()
         self.whitePieces.remove(piece) if player == PLAYER_WHITE else self.blackPieces.remove(piece)
-        if pieceType == 'P': newPiece = Pawn(pieceType, r, c, player)
-        elif pieceType == 'N': newPiece = Knight(pieceType, r, c, player)
-        elif pieceType == 'B': newPiece = Bishop(pieceType, r, c, player)
-        elif pieceType == 'R': newPiece = Rook(pieceType, r, c, player)
-        elif pieceType == 'Q': newPiece = Queen(pieceType, r, c, player)
-        else: newPiece = King(pieceType, r, c, player)
-        newPiece.unmoved = False
+        newPiece = self.makePiece(pieceType, r, c, player)
+        newPiece.unmoved = False # mark as unveiled
         self.whitePieces.append(newPiece) if player == PLAYER_WHITE else self.blackPieces.append(newPiece)
         self.setPiece(r, c, newPiece)
 
@@ -586,7 +589,7 @@ class Board:
         Check whether the current player can promote one of the Pawns after movement
 
         Input:
-            player (String): current player
+            player (str): current player
             pos (Tuple[int, int]): position of the Pawn intend to promote
         
         Output:
@@ -634,6 +637,7 @@ if __name__ == '__main__': # some trivial tests for (will implement test in form
     assert(board.convertTupleToCoord((4, 4)) == "E4")
     assert(board.convertTupleToCoord((0, 7)) == "H8")
     assert(board.convertTupleToCoord((7, 0)) == "A1")
+
     print("real board: ")
     board.printRealBoard()
     
@@ -666,3 +670,14 @@ if __name__ == '__main__': # some trivial tests for (will implement test in form
     print(probs)
     board.move('F1', 'C4')
     board.printBoard()
+
+    # every unveiled piece must have matched piece class name and piece name
+    pieceClassNames = ["Pawn", "Rook", "Knight", "Bishop", "Queen", "King"]
+    pieceNames = ['P', 'R', 'N', 'B', 'Q', 'K']
+    for r in range(BOARD_SIZE):
+        for c in range(BOARD_SIZE):
+            piece = board.getPiece(r, c)
+            if piece != EMPTY:
+                pieceName = piece.getName().upper()
+                pieceClassName = piece.__class__.__name__
+                if not piece.unmoved: assert(pieceNames.index(pieceName) == pieceClassNames.index(pieceClassName))
