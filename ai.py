@@ -41,7 +41,13 @@ class AI():
         else: return score
     
     def expectiminimax(self, currBoard, player, depth, verbose):
-        if not depth or currBoard.gameOver: return self.evaluate(currBoard, verbose), None
+        if currBoard.gameOver:
+            print(f"currBoard.winner: {currBoard.winner}")
+            if currBoard.winner == 1: return float('inf'), None # player white wins
+            elif currBoard.winner == -1: return float('-inf'), None # player black wins
+            else: return 0, None # draw
+        
+        if not depth: return self.evaluate(currBoard, verbose), None
 
         assert(currBoard.currPlayer == player)
         if player == PLAYER_WHITE: # max agent

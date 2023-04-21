@@ -7,7 +7,7 @@ from macro import *
 
 def simulate(numGame, whiteLevel, blackLevel):
     for i in range(numGame):
-        print(f"================== Game {i} ==================".format(i+1))
+        print(f"================== Game {i+1} ==================")
         GameBoard = Board()
         print("Game start")
         GameBoard.printBoard()
@@ -15,7 +15,7 @@ def simulate(numGame, whiteLevel, blackLevel):
         GameBoard.printRealBoard()
         whiteAI = AI(GameBoard, whiteLevel) # novice AI
         blackAI = AI(GameBoard, blackLevel) # competent AI
-        sys.stdin = io.StringIO('q') # default pawn promotion to queen for AI (may be modified later)
+        sys.stdin = io.StringIO('q\n'*100000) # default pawn promotion to queen for AI (may be modified later)
         while not GameBoard.gameOver:
             print()
             print(f"{GameBoard.currPlayer}'s turn")

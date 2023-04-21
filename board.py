@@ -37,6 +37,7 @@ class Board:
         self.checkmate = False
         self.stalemate = False
         self.gameOver = False
+        self.winner = 0 # 1 represents player white wins, -1 represents player black wins, 0 represents draw or game haven't finished
         self.whiteCaptives = []
         self.blackCaptives = []
         self.gameLog = [] # game log
@@ -509,6 +510,7 @@ class Board:
             if isOnCheck: 
                 print("Checkmate!")
                 opponent = "Black" if self.currPlayer == PLAYER_WHITE else "White"
+                self.winner = 1 if opponent == "White" else -1
                 print("{opponent} is victorious.".format(opponent=opponent))
             else: 
                 print("Stalemate!")
