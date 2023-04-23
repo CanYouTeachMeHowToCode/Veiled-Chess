@@ -50,8 +50,8 @@ def generateData(numGames):
             data.at[index, 'score'] = score
             print(data)
             print(len(data))
-            data.to_csv('data/data_white_2.csv', header=False, index=False)
-            # data.to_csv('data/data_black_2.csv', header=False, index=False)
+            data.to_csv('data/data_white_2.csv', index=False)
+            # data.to_csv('data/data_black_2.csv', index=False)
             
             GameBoard.move(start, end, verbose=True)
             GameBoard.printBoard()
