@@ -8,28 +8,21 @@ from macro import *
 class AI():
     def __init__(self, GameBoard, level):
         self.GameBoard = GameBoard
-        self.level = ['novice', 'competent', 'expert'][level]
+        self.level = ['novice', 'competent', 'proficient', 'expert'][level]
     
     def getLegalMoves(self):
         return self.GameBoard.getAllLegalMoves()
 
     def nextMove(self):
-        if self.level == 'novice': return self.noviceAIMove()
-        elif self.level == 'competent': return self.competentAIMove(verbose=False)[1]
+        if self.level == 'novice': return self.noviceAIMove(verbose=False)
+        elif self.level == 'competent': return self.competentAIMove(verbose=False)
+        elif self.level == 'proficient': return self.proficientAIMove(verbose=False)
     
-    def noviceAIMove(self):
-        '''
-        Novice level AI move--just random choice of all legal moves
-
-        Input:
-            None
-
-        Output:
-            move (Tuple[Tuple[int, int], Tuple[int, int]]): best move from AI agent
-        '''
-        return random.choice(self.getLegalMoves())
-    
-    def evaluate(self, currBoard, verbose, t=0.01):
+    def evaluate(self, currBoard, verbose, t=0.001):
+        if currBoard.gameOver:
+            if currBoard.winner == 1: return float('inf') # player white wins
+            elif currBoard.winner == -1: return float('-inf') # player black wins
+            else: return 0 # draw
         fen = currBoard.boardToFEN()
         engine = chess.engine.SimpleEngine.popen_uci("/usr/local/bin/stockfish")
         board = chess.Board(fen)
@@ -37,12 +30,59 @@ class AI():
         score = info["score"].white().score()
         if verbose: print(f"score: {score}")
         engine.quit()
-        if not score: return float('inf') if currBoard.currPlayer == PLAYER_WHITE else float('-inf')
+        if not score: return 0
         else: return score
+
+    def noviceAIMove(self, verbose):
+        '''
+        Novice level AI move--just random choice of all legal moves
+
+        Input:
+            None
+
+        Output:
+            score (float): best moving score from AI agent
+            move (Tuple[Tuple[int, int], Tuple[int, int]]): best move from AI agent
+        '''
+        move = random.choice(self.getLegalMoves())
+        simBoard = copy.deepcopy(self.GameBoard)
+        simBoard.move(simBoard.convertTupleToCoord(move[0]), simBoard.convertTupleToCoord(move[1]), verbose)
+        score = self.evaluate(simBoard, verbose)
+        return score, move
+    
+    def competentAIMove(self, verbose):
+        '''
+        Competent level AI move--evaluated best moves with stockfish board evaluation
+
+        Output:
+            score (float): best moving score from AI agent
+            move (Tuple[Tuple[int, int], Tuple[int, int]]): best move from AI agent
+        '''
+        moves = self.getLegalMoves()
+        player = self.GameBoard.currPlayer
+        if player == PLAYER_WHITE:
+            bestScore, bestMove = float('-inf'), None
+            for move in moves:
+                simBoard = copy.deepcopy(self.GameBoard)
+                simBoard.move(simBoard.convertTupleToCoord(move[0]), simBoard.convertTupleToCoord(move[1]), verbose)
+                score = self.evaluate(simBoard, verbose)
+                if score >= bestScore:
+                    bestScore = score
+                    bestMove = move
+            return bestScore, bestMove
+        else:
+            bestScore, bestMove = float('inf'), None
+            for move in moves:
+                simBoard = copy.deepcopy(self.GameBoard)
+                simBoard.move(simBoard.convertTupleToCoord(move[0]), simBoard.convertTupleToCoord(move[1]), verbose)
+                score = self.evaluate(simBoard, verbose)
+                if score <= bestScore:
+                    bestScore = score
+                    bestMove = move
+            return bestScore, bestMove
     
     def expectiminimax(self, currBoard, player, depth, verbose):
         if currBoard.gameOver:
-            print(f"currBoard.winner: {currBoard.winner}")
             if currBoard.winner == 1: return float('inf'), None # player white wins
             elif currBoard.winner == -1: return float('-inf'), None # player black wins
             else: return 0, None # draw
@@ -53,6 +93,7 @@ class AI():
         if player == PLAYER_WHITE: # max agent
             bestScore, bestMove = float('-inf'), None
             moves = currBoard.getAllLegalMoves()
+            print(f"moves: {moves}")
             for move in moves:
                 score = 0
                 start, end = move[0], move[1]
@@ -80,7 +121,7 @@ class AI():
                     pieceScore, _ = self.expectiminimax(simBoard, PLAYER_BLACK, depth-1, verbose)
                     score += pieceScore
                     
-                if score > bestScore:
+                if score >= bestScore:
                     bestScore = score
                     bestMove = move
             
@@ -89,6 +130,7 @@ class AI():
         elif player == PLAYER_BLACK: # min agent
             bestScore, bestMove = float('inf'), None
             moves = currBoard.getAllLegalMoves()
+            print(f"moves: {moves}")
             for move in moves:
                 score = 0
                 start, end = move[0], move[1]
@@ -115,15 +157,15 @@ class AI():
                     pieceScore, _ = self.expectiminimax(simBoard, PLAYER_WHITE, depth-1, verbose)
                     score += pieceScore
 
-                if score < bestScore:
+                if score <= bestScore:
                     bestScore = score
                     bestMove = move
             
             return bestScore, bestMove
     
-    def competentAIMove(self, verbose):
+    def proficientAIMove(self, verbose):
         '''
-        Competent level AI move--evaluated best moves with Expectiminimax algorithm and stockfish board evaluation
+        Proficient level AI move--evaluated best moves with Expectiminimax algorithm and stockfish board evaluation
 
         Output:
             score (float): best moving score from AI agent
@@ -136,7 +178,7 @@ if __name__ == '__main__':
     ai = AI(board, 0)
     fen = board.boardToFEN()
     assert(fen) == 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    ai.evaluate(board)
+    ai.evaluate(board, True)
     board.printBoard()
     board.printRealBoard()
 
@@ -144,18 +186,18 @@ if __name__ == '__main__':
     board.move(move1[0], move1[1]) # can be different pieces after unveiling
     fen = board.boardToFEN()
     print(fen)
-    ai.evaluate(board)
+    ai.evaluate(board, True)
     board.printBoard()
 
     move2 = ('E7', 'E5')
     board.move(move2[0], move2[1]) # can be different pieces after unveiling
     fen = board.boardToFEN()
     print(fen)
-    ai.evaluate(board)
+    ai.evaluate(board, True)
     board.printBoard()
 
     print("============================")
-    score, move = ai.competentAIMove()
+    score, move = ai.competentAIMove(verbose=True)
     print(f"score: {score}")
     print(f"move: {move}")
     move3 = board.convertTupleToCoord(move[0]), board.convertTupleToCoord(move[1])
@@ -165,7 +207,7 @@ if __name__ == '__main__':
     board.printBoard()
 
     print("============================")
-    score, move = ai.competentAIMove()
+    score, move = ai.competentAIMove(verbose=True)
     print(f"score: {score}")
     print(f"move: {move}")
     move4 = board.convertTupleToCoord(move[0]), board.convertTupleToCoord(move[1])

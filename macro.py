@@ -1,4 +1,4 @@
-# define necessary chess game macros 
+# Define necessary game macros 
 
 UNICODE_PIECE_SYMBOLS = u'.●♟♞♝♜♛♚♔♕♖♗♘♙○'
 ASCII_PIECE_CHARS = '.VPNBRQKkqrbnpv'

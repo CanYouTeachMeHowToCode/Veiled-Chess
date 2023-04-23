@@ -1,3 +1,4 @@
+# Veiled Chess game logic
 from macro import *
 from piece import *
 import random
@@ -40,7 +41,7 @@ class Board:
         self.winner = 0 # 1 represents player white wins, -1 represents player black wins, 0 represents draw or game haven't finished
         self.whiteCaptives = []
         self.blackCaptives = []
-        self.gameLog = [] # game log
+        self.gameLog = [] # game log (TODO: add info of piece being unveiled to which type in game log)
         self.numFullMoves = 1 # number of full moves, starts at 1 and is incremented after Black's move
 
         # Game board initialization
@@ -89,13 +90,47 @@ class Board:
         else: newPiece = King(pieceType, r, c, player)
         return newPiece
 
+    def getBoard(self):
+        '''
+        Get the current board--the board that treats veiled pieces independently
+        as well as the current state information;
+        this function is mainly used for deep learning approach--for converting 
+        current game state to the format matches with the deep nn-based content 
+        filtering model for training
+
+        Input: 
+            None
+
+        Output:
+            board (List[List[str]]): board of the current game state
+            gameStateInfo (List[bool]): current castling availibilities for white King, white Queen, black King and black queen
+        '''
+        board = []
+        for r in range(BOARD_SIZE):
+            row = []
+            for c in range(BOARD_SIZE):
+                piece = self.getPiece(r, c)
+                if piece == EMPTY: asciiName = EMPTY
+                else:
+                    pieceName = self.getPieceAsciiName(piece)
+                    if pieceName.upper() == 'K': asciiName = pieceName # Kings are always unveiled
+                    elif piece.unmoved: asciiName = 'v' if piece.getPlayer() == PLAYER_WHITE else 'V'
+                    else: asciiName = pieceName
+                row.append(asciiName)
+            board.append(row)
+        gameStateInfo = [self.canCastlingKingsideFEN(PLAYER_WHITE),
+                         self.canCastlingQueensideFEN(PLAYER_WHITE),
+                         self.canCastlingKingsideFEN(PLAYER_BLACK),
+                         self.canCastlingQueensideFEN(PLAYER_BLACK)]
+        return board, gameStateInfo
+
     def getProvisionalBoard(self):
         '''
-        Get the current "provisional" board--the board that treats unveiled pieces 
-        as the pieces they currently is, as well as the state of the board; 
-        e.g. an unveiled white Queen piece at the second rank will be treated as a pawn; 
+        Get the current "provisional" board--the board that treats veiled pieces 
+        as the pieces they currently is; e.g. an unveiled white Queen piece at the second rank will be treated as a pawn; 
         also note that the cases of the characters that represent pieces are reversed 
-        to match with FEN standard (white pieces are uppercases and black pieces are lowercases)
+        to match with FEN standard (white pieces are uppercases and black pieces are lowercases);
+        this function is mainly used for non-deep learning approach--expectiminimax algorithm
 
         Input: 
             None
@@ -533,7 +568,7 @@ class Board:
         if letter not in "ABCDEFGH" or number not in range(BOARD_SIZE): return -1, -1
         return number, ord(letter)-ord('A')
 
-    def move(self, start, end, verbose): # for terminal version used only
+    def move(self, start, end, verbose=True): # for terminal version used only
         r1, c1 = self.convertCoordToTuple(start)
         r2, c2 = self.convertCoordToTuple(end)
         piece = self.getPiece(r1, c1)
@@ -606,10 +641,8 @@ class Board:
                     piece = self.getPiece(pos[0], pos[1])
                     r, c = piece.getRow(), piece.getCol()
                     self.whitePieces.remove(piece)
-                    if pieceType == 'n': newPiece = Knight(pieceType, r, c, player)
-                    elif pieceType == 'b': newPiece = Bishop(pieceType, r, c, player)
-                    elif pieceType == 'r': newPiece = Rook(pieceType, r, c, player)
-                    elif pieceType == 'q': newPiece = Queen(pieceType, r, c, player)
+                    newPiece = self.makePiece(pieceType, r, c, player)
+                    newPiece.unmoved = False # unveiled
                     self.whitePieces.append(newPiece)
                     self.setPiece(r, c, newPiece)
                     return True
@@ -623,10 +656,8 @@ class Board:
                     piece = self.getPiece(pos[0], pos[1])
                     r, c = piece.getRow(), piece.getCol()
                     self.blackPieces.remove(piece)
-                    if pieceType == 'N': newPiece = Knight(pieceType, r, c, player)
-                    elif pieceType == 'B': newPiece = Bishop(pieceType, r, c, player)
-                    elif pieceType == 'R': newPiece = Rook(pieceType, r, c, player)
-                    elif pieceType == 'Q': newPiece = Queen(pieceType, r, c, player)
+                    newPiece = self.makePiece(pieceType, r, c, player)
+                    newPiece.unmoved = False # unveiled
                     self.blackPieces.append(newPiece)
                     self.setPiece(r, c, newPiece)
                     return True

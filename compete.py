@@ -5,7 +5,7 @@ from board import Board
 from ai import AI
 from macro import *
 
-def simulate(numGame, whiteLevel, blackLevel):
+def simulateAICompetition(numGame, whiteLevel, blackLevel):
     for i in range(numGame):
         print(f"================== Game {i+1} ==================")
         GameBoard = Board()
@@ -20,7 +20,7 @@ def simulate(numGame, whiteLevel, blackLevel):
             print()
             print(f"{GameBoard.currPlayer}'s turn")
             startTime = time.time()
-            start, end = whiteAI.nextMove() if GameBoard.currPlayer == PLAYER_WHITE else blackAI.nextMove()
+            start, end = whiteAI.nextMove()[1] if GameBoard.currPlayer == PLAYER_WHITE else blackAI.nextMove()[1]
             start, end = GameBoard.convertTupleToCoord(start), GameBoard.convertTupleToCoord(end)
             GameBoard.move(start, end, verbose=True)
             endTime = time.time()
@@ -30,4 +30,5 @@ def simulate(numGame, whiteLevel, blackLevel):
         print(GameBoard.gameLog)
 
 if __name__ == '__main__':
-    simulate(numGame=2, whiteLevel=0, blackLevel=1)
+    # simulateAICompetition(numGame=2, whiteLevel=0, blackLevel=1) # novice vs competent
+    simulateAICompetition(numGame=1, whiteLevel=1, blackLevel=1) # competent vs competent
