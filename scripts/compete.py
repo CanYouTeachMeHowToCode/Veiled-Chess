@@ -1,9 +1,9 @@
 import time
 import sys
 import io
-from board import Board
-from ai import AI
-from macro import *
+from scripts.board import Board
+from scripts.ai import AI
+from scripts.macro import *
 
 def simulateAICompetition(numGame, whiteLevel, blackLevel):
     for i in range(numGame):

@@ -1,10 +1,10 @@
-# script for dataset simulation
+# Script for dataset simulation
 import sys
 import io
 import pandas as pd
-from board import Board
-from ai import AI
-from macro import *
+from scripts.board import Board
+from scripts.ai import AI
+from scripts.macro import *
 
 def generateData(numGames):
     '''
@@ -57,6 +57,6 @@ def generateData(numGames):
             GameBoard.printBoard()
             index += 1
     return data
-
+    
 if __name__ == '__main__':
     data = generateData(10)

@@ -2,8 +2,8 @@
 import random
 import copy
 import chess.engine
-from board import Board
-from macro import *
+from scripts.board import Board
+from scripts.macro import *
 
 class AI():
     def __init__(self, GameBoard, level):

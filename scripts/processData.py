@@ -1,8 +1,8 @@
-# NN-based content filtering recommendation model
+# Script for dataset processing
+import os
 import pandas as pd
-import os 
 
-# automatically remove all .DS_Store files
+# automatically remove all .DS_Store files (for macOS only)
 def removeTmpFiles(path):
     if path.split("/")[-1] == '.DS_Store': os.remove(path)
     elif os.path.isdir(path):
@@ -13,19 +13,20 @@ def listFile(path):
     if not os.path.isdir(path): return path
     else: return [listFile(path + "/" + filename) for filename in os.listdir(path)]
 
-def loadAndProcessData(files):
+def loadAndProcessData(path):
     '''
     Load dataframes from all csv files in data folder, merge them together, and filter
     out all rows that has a zero scores (either indicates meaningless draw situations 
     or not applicable evaluation scores from stockfish due to time and depth limitations)
 
     Input:
-        files (List[str]): file paths to csv files
+        path (str): file path to data folder that contains csv files
     
     Output:
         df (pd.DataFrame): output merged dataframe that filtered out all zero score rows
     '''
     df = pd.DataFrame(columns=['board', 'player', 'gameInfo', 'score'])
+    files = listFile(path)
     for file in files:
         curr_df = pd.read_csv(file)
         df = pd.concat([df, curr_df])
@@ -33,8 +34,3 @@ def loadAndProcessData(files):
     df.reset_index(inplace=True)
     df.drop(['index', 'Unnamed: 0'], axis=1, inplace=True)
     return df
-
-if __name__ == '__main__':
-    files = listFile('data')
-    df = loadAndProcessData(files)
-    print(df)

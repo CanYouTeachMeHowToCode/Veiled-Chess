@@ -1,4 +1,4 @@
-from macro import * 
+from scripts.macro import * 
 
 class Piece:
     def __init__(self, name, row, col, player):

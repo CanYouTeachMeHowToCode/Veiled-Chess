@@ -1,6 +1,6 @@
 # Veiled Chess game logic
-from macro import *
-from piece import *
+from scripts.macro import *
+from scripts.piece import *
 import random
 
 '''
