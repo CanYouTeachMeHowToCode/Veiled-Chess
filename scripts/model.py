@@ -47,5 +47,5 @@ class VeiledChessNet(nn.Module):
         
         # Final output layer
         z = self.out(z)
-        z = F.tanh(z) # maps output to range (-1, 1)
+        z = torch.tanh(z) # maps output to range (-1, 1)
         return z

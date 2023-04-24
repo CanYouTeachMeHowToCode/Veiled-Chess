@@ -30,17 +30,11 @@ def generateData(numGames, path, whiteLevel, blackLevel):
     for i in range(numGames):
         print(f"================== Game {i+1} ==================")
         GameBoard = Board()
-        print("Game start")
-        GameBoard.printBoard()
-        print("Real Board: ")
-        GameBoard.printRealBoard()
         whiteAI = AI(GameBoard, whiteLevel) 
         blackAI = AI(GameBoard, blackLevel)
         sys.stdin = io.StringIO('q\n'*100000) # default pawn promotion to queen for AI (may be modified later)
         while not GameBoard.gameOver:
-            print()
             player = GameBoard.currPlayer
-            print(f"{player}'s turn")
             board, gameStateInfo = GameBoard.getBoard()
             score, move = whiteAI.nextMove() if player == PLAYER_WHITE else blackAI.nextMove() 
             start, end = GameBoard.convertTupleToCoord(move[0]), GameBoard.convertTupleToCoord(move[1])
@@ -49,8 +43,6 @@ def generateData(numGames, path, whiteLevel, blackLevel):
             data.at[index, 'player'] = player
             data.at[index, 'gameInfo'] = gameStateInfo
             data.at[index, 'score'] = score
-            print(data)
-            print(len(data))
             data.to_csv(path, index=False)
             
             GameBoard.move(start, end, verbose=True)

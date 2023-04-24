@@ -21,7 +21,7 @@ class AI():
         elif self.level == 'proficient': return self.proficientAIMove(verbose=False)
         else: return self.expertAIMove(verbose=False)
     
-    def evaluate(self, currBoard, verbose, t=0.001):
+    def evaluate(self, currBoard, verbose, t=0.01):
         if currBoard.gameOver:
             if currBoard.winner == 1: return float('inf') # player white wins
             elif currBoard.winner == -1: return float('-inf') # player black wins
@@ -124,7 +124,6 @@ class AI():
         if player == PLAYER_WHITE: # max agent
             bestScore, bestMove = float('-inf'), None
             moves = currBoard.getAllLegalMoves()
-            print(f"moves: {moves}")
             for move in moves:
                 score = 0
                 start, end = move[0], move[1]
@@ -171,7 +170,6 @@ class AI():
         elif player == PLAYER_BLACK: # min agent
             bestScore, bestMove = float('inf'), None
             moves = currBoard.getAllLegalMoves()
-            print(f"moves: {moves}")
             for move in moves:
                 score = 0
                 start, end = move[0], move[1]
@@ -230,7 +228,6 @@ class AI():
         if player == PLAYER_WHITE: # max agent
             bestScore, bestMove = float('-inf'), None
             moves = currBoard.getAllLegalMoves()
-            print(f"moves: {moves}")
             for move in moves:
                 score = 0
                 start, end = move[0], move[1]
@@ -267,7 +264,6 @@ class AI():
         elif player == PLAYER_BLACK: # min agent
             bestScore, bestMove = float('inf'), None
             moves = currBoard.getAllLegalMoves()
-            print(f"moves: {moves}")
             for move in moves:
                 score = 0
                 start, end = move[0], move[1]
