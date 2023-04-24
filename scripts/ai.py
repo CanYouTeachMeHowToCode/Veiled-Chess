@@ -4,7 +4,6 @@ import copy
 import chess.engine
 import torch
 import numpy as np
-from scripts.board import Board
 from scripts.macro import *
 from scripts.model import VeiledChessNet
 
@@ -88,98 +87,6 @@ class AI():
                     bestScore = score
                     bestMove = move
             return bestScore, bestMove
-    
-    def expectiminimax(self, currBoard, player, depth, verbose):
-        if currBoard.gameOver:
-            if currBoard.winner == 1: return float('inf'), None # player white wins
-            elif currBoard.winner == -1: return float('-inf'), None # player black wins
-            else: return 0, None # draw
-        
-        if not depth: return self.evaluate(currBoard, verbose), None
-
-        assert(currBoard.currPlayer == player)
-        if player == PLAYER_WHITE: # max agent
-            bestScore, bestMove = float('-inf'), None
-            moves = currBoard.getAllLegalMoves()
-            print(f"moves: {moves}")
-            for move in moves:
-                score = 0
-                start, end = move[0], move[1]
-                piece = currBoard.getPiece(start[0], start[1])
-                assert(piece.getPlayer() == player)
-                
-                if piece.unmoved and piece.getName().upper() != 'K': # veiled piece
-                    probs = currBoard.getProbabilityOfVeiledPiece(piece)
-                    pieceTypes = ['P', 'R', 'N', 'B', 'Q']
-                    for i in range(len(probs)):
-                        simBoard = copy.deepcopy(currBoard) # board for expectiminimax child state simulation
-                        prob, pieceType = probs[i], pieceTypes[i]
-                        # perform move and let the piece unveil to the selected piece type
-                        simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
-                        originalPiece = simBoard.getPiece(end[0], end[1])
-                        expectedPiece = simBoard.makePiece(pieceType, end[0], end[1], player)
-                        simBoard.whitePieces.remove(originalPiece)
-                        simBoard.setPiece(end[0], end[1], expectedPiece)
-                        simBoard.whitePieces.append(expectedPiece)
-                        pieceScore, _ = self.expectiminimax(simBoard, PLAYER_BLACK, depth-1, verbose)
-                        score += pieceScore*prob
-                else: # unveiled piece
-                    simBoard = copy.deepcopy(currBoard)
-                    simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
-                    pieceScore, _ = self.expectiminimax(simBoard, PLAYER_BLACK, depth-1, verbose)
-                    score += pieceScore
-                    
-                if score >= bestScore:
-                    bestScore = score
-                    bestMove = move
-            
-            return bestScore, bestMove
-        
-        elif player == PLAYER_BLACK: # min agent
-            bestScore, bestMove = float('inf'), None
-            moves = currBoard.getAllLegalMoves()
-            print(f"moves: {moves}")
-            for move in moves:
-                score = 0
-                start, end = move[0], move[1]
-                piece = currBoard.getPiece(start[0], start[1])
-                assert(piece.getPlayer() == player)
-                if piece.unmoved and piece.getName().upper() != 'K': # veiled piece
-                    probs = currBoard.getProbabilityOfVeiledPiece(piece)
-                    pieceTypes = ['P', 'R', 'N', 'B', 'Q']
-                    for i in range(len(probs)):
-                        simBoard = copy.deepcopy(currBoard) # board for expectiminimax child state simulation
-                        prob, pieceType = probs[i], pieceTypes[i]
-                        # perform move and let the piece unveil to the selected piece type
-                        simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
-                        originalPiece = simBoard.getPiece(end[0], end[1])
-                        expectedPiece = simBoard.makePiece(pieceType, end[0], end[1], player)
-                        simBoard.blackPieces.remove(originalPiece)
-                        simBoard.setPiece(end[0], end[1], expectedPiece)
-                        simBoard.blackPieces.append(expectedPiece)
-                        pieceScore, _ = self.expectiminimax(simBoard, PLAYER_WHITE, depth-1, verbose)
-                        score += pieceScore*prob
-                else: # unveiled piece
-                    simBoard = copy.deepcopy(currBoard)
-                    simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
-                    pieceScore, _ = self.expectiminimax(simBoard, PLAYER_WHITE, depth-1, verbose)
-                    score += pieceScore
-
-                if score <= bestScore:
-                    bestScore = score
-                    bestMove = move
-            
-            return bestScore, bestMove
-    
-    def proficientAIMove(self, verbose):
-        '''
-        Proficient level AI move--evaluated best moves with Expectiminimax algorithm and stockfish board evaluation
-
-        Output:
-            score (float): best moving score from AI agent
-            move (Tuple[Tuple[int, int], Tuple[int, int]]): best move from AI agent
-        '''
-        return self.expectiminimax(self.GameBoard, self.GameBoard.currPlayer, 1, verbose)
     
     def convertToModelInput(self, currBoard):
         # Encode player
@@ -299,10 +206,9 @@ class AI():
             
             return bestScore, bestMove
 
-        
-    def expertAIMove(self, verbose):
+    def proficientAIMove(self, verbose):
         '''
-        Expert level AI move--evaluated expected best moves recommended by nn-based content filtering recommendation model
+        Proficient level AI move--evaluated expected best moves recommended by nn-based content filtering recommendation model
 
         Output:
             score (float): best moving score from AI agent
@@ -311,3 +217,95 @@ class AI():
         model = VeiledChessNet()
         model.load_state_dict(torch.load("./models/best_model.pth"))
         return self.moveFromModel(model, self.GameBoard, self.GameBoard.currPlayer, verbose)
+    
+    def expectiminimax(self, currBoard, player, depth, verbose):
+        if currBoard.gameOver:
+            if currBoard.winner == 1: return float('inf'), None # player white wins
+            elif currBoard.winner == -1: return float('-inf'), None # player black wins
+            else: return 0, None # draw
+        
+        if not depth: return self.evaluate(currBoard, verbose), None
+
+        assert(currBoard.currPlayer == player)
+        if player == PLAYER_WHITE: # max agent
+            bestScore, bestMove = float('-inf'), None
+            moves = currBoard.getAllLegalMoves()
+            print(f"moves: {moves}")
+            for move in moves:
+                score = 0
+                start, end = move[0], move[1]
+                piece = currBoard.getPiece(start[0], start[1])
+                assert(piece.getPlayer() == player)
+                
+                if piece.unmoved and piece.getName().upper() != 'K': # veiled piece
+                    probs = currBoard.getProbabilityOfVeiledPiece(piece)
+                    pieceTypes = ['P', 'R', 'N', 'B', 'Q']
+                    for i in range(len(probs)):
+                        simBoard = copy.deepcopy(currBoard) # board for expectiminimax child state simulation
+                        prob, pieceType = probs[i], pieceTypes[i]
+                        # perform move and let the piece unveil to the selected piece type
+                        simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                        originalPiece = simBoard.getPiece(end[0], end[1])
+                        expectedPiece = simBoard.makePiece(pieceType, end[0], end[1], player)
+                        simBoard.whitePieces.remove(originalPiece)
+                        simBoard.setPiece(end[0], end[1], expectedPiece)
+                        simBoard.whitePieces.append(expectedPiece)
+                        pieceScore, _ = self.expectiminimax(simBoard, PLAYER_BLACK, depth-1, verbose)
+                        score += pieceScore*prob
+                else: # unveiled piece
+                    simBoard = copy.deepcopy(currBoard)
+                    simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                    pieceScore, _ = self.expectiminimax(simBoard, PLAYER_BLACK, depth-1, verbose)
+                    score += pieceScore
+                    
+                if score >= bestScore:
+                    bestScore = score
+                    bestMove = move
+            
+            return bestScore, bestMove
+        
+        elif player == PLAYER_BLACK: # min agent
+            bestScore, bestMove = float('inf'), None
+            moves = currBoard.getAllLegalMoves()
+            print(f"moves: {moves}")
+            for move in moves:
+                score = 0
+                start, end = move[0], move[1]
+                piece = currBoard.getPiece(start[0], start[1])
+                assert(piece.getPlayer() == player)
+                if piece.unmoved and piece.getName().upper() != 'K': # veiled piece
+                    probs = currBoard.getProbabilityOfVeiledPiece(piece)
+                    pieceTypes = ['P', 'R', 'N', 'B', 'Q']
+                    for i in range(len(probs)):
+                        simBoard = copy.deepcopy(currBoard) # board for expectiminimax child state simulation
+                        prob, pieceType = probs[i], pieceTypes[i]
+                        # perform move and let the piece unveil to the selected piece type
+                        simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                        originalPiece = simBoard.getPiece(end[0], end[1])
+                        expectedPiece = simBoard.makePiece(pieceType, end[0], end[1], player)
+                        simBoard.blackPieces.remove(originalPiece)
+                        simBoard.setPiece(end[0], end[1], expectedPiece)
+                        simBoard.blackPieces.append(expectedPiece)
+                        pieceScore, _ = self.expectiminimax(simBoard, PLAYER_WHITE, depth-1, verbose)
+                        score += pieceScore*prob
+                else: # unveiled piece
+                    simBoard = copy.deepcopy(currBoard)
+                    simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                    pieceScore, _ = self.expectiminimax(simBoard, PLAYER_WHITE, depth-1, verbose)
+                    score += pieceScore
+
+                if score <= bestScore:
+                    bestScore = score
+                    bestMove = move
+            
+            return bestScore, bestMove
+
+    def expertAIMove(self, verbose):
+        '''
+        Expert level AI move--evaluated best moves with Expectiminimax algorithm and stockfish board evaluation
+
+        Output:
+            score (float): best moving score from AI agent
+            move (Tuple[Tuple[int, int], Tuple[int, int]]): best move from AI agent
+        '''
+        return self.expectiminimax(self.GameBoard, self.GameBoard.currPlayer, 1, verbose)

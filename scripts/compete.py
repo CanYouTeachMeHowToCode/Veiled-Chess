@@ -28,7 +28,3 @@ def simulateAICompetition(numGame, whiteLevel, blackLevel):
             GameBoard.printBoard()
         print("Game Log:")
         print(GameBoard.gameLog)
-
-if __name__ == '__main__':
-    # simulateAICompetition(numGame=2, whiteLevel=0, blackLevel=1) # novice vs competent
-    simulateAICompetition(numGame=1, whiteLevel=1, blackLevel=1) # competent vs competent
