@@ -7,6 +7,14 @@ PLAYER_WHITE = 'white'
 PLAYER_BLACK = 'black'
 BOARD_SIZE = 8
 EMPTY = '.'
+STANDARD_BOARD = ['RNBQKBNR',
+                  'PPPPPPPP',
+                  '........',
+                  '........',
+                  '........',
+                  '........',
+                  'pppppppp',
+                  'rnbqkbnr']
 
 # Model training parameters
 BATCH_SIZE = 64

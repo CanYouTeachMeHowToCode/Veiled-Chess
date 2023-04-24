@@ -278,13 +278,10 @@ class Board:
         if piece == EMPTY: return []
         legalMoves = []
         allLegalMovesOfThisPiece = piece.getLegalMoves(self)
-        # print("allLegalMovesOfThisPiece: ", allLegalMovesOfThisPiece)
         for move in allLegalMovesOfThisPiece: # we only need to check whether performing this move will not put the king in check or not
-            # print("move: ", move)
             pieceTaken, firstMove = self.doMove((r, c), move)
             if not self.isOnCheck(self.currPlayer): legalMoves.append(move)
             self.undoMove((r, c), move, pieceTaken, firstMove)
-        # print("legalMoves: ", legalMoves)
         # legal castling moves
         if self.getPieceAsciiName(piece) == 'K': 
             assert(self.currPlayer == PLAYER_BLACK)
