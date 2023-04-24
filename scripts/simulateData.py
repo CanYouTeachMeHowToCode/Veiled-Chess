@@ -57,6 +57,3 @@ def generateData(numGames, path, whiteLevel, blackLevel):
             GameBoard.printBoard()
             index += 1
     return data
-    
-if __name__ == '__main__':
-    data = generateData(10)

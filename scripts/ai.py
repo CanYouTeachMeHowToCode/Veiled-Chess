@@ -2,8 +2,11 @@
 import random
 import copy
 import chess.engine
+import torch
+import numpy as np
 from scripts.board import Board
 from scripts.macro import *
+from scripts.model import VeiledChessNet
 
 class AI():
     def __init__(self, GameBoard, level):
@@ -17,6 +20,7 @@ class AI():
         if self.level == 'novice': return self.noviceAIMove(verbose=False)
         elif self.level == 'competent': return self.competentAIMove(verbose=False)
         elif self.level == 'proficient': return self.proficientAIMove(verbose=False)
+        else: return self.expertAIMove(verbose=False)
     
     def evaluate(self, currBoard, verbose, t=0.001):
         if currBoard.gameOver:
@@ -176,46 +180,134 @@ class AI():
             move (Tuple[Tuple[int, int], Tuple[int, int]]): best move from AI agent
         '''
         return self.expectiminimax(self.GameBoard, self.GameBoard.currPlayer, 1, verbose)
+    
+    def convertToModelInput(self, currBoard):
+        # Encode player
+        playerEncoded = 1 if currBoard.currPlayer == PLAYER_WHITE else -1
+        board, gameStateInfo = currBoard.getBoard()
+        # Encode board
+        scores = [0, -7, -1, -3, -3, -5, -9, -100, 100, 9, 5, 3, 3, 1, 7]
+        boards = np.array([board])
+        ordinalBoards = np.zeros((boards.shape[0], boards.shape[1], boards.shape[2]), dtype=int)
+        for i in range(boards.shape[0]):
+            for j in range(boards.shape[1]):
+                for k in range(boards.shape[2]):
+                    char = str(boards[i, j, k]).replace("'", "")
+                    ordinalBoards[i, j, k] = scores[ASCII_PIECE_CHARS.find(char)]
+        ordinalBoards = np.reshape(ordinalBoards, (ordinalBoards.shape[0], 1, ordinalBoards.shape[1], ordinalBoards.shape[2]))
+        gameInfo = np.array([playerEncoded]+gameStateInfo).reshape(1, -1)
+        return torch.Tensor(ordinalBoards), torch.Tensor(gameInfo)
 
-if __name__ == '__main__':
-    board = Board()
-    ai = AI(board, 0)
-    fen = board.boardToFEN()
-    assert(fen) == 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    ai.evaluate(board, True)
-    board.printBoard()
-    board.printRealBoard()
+    def moveFromModel(self, model, currBoard, player, verbose):
+        '''
+        Find the move with highest recommedation score from the input model; for 
+        each move, the scores are computed based on all the scenarios of the move 
+        and added together with the multiplication of the corresponding probability
 
-    move1 = ('E2', 'E4')
-    board.move(move1[0], move1[1]) # can be different pieces after unveiling
-    fen = board.boardToFEN()
-    print(fen)
-    ai.evaluate(board, True)
-    board.printBoard()
+        Input: 
+            model (torch.nn): the trained model for move recommendation
+            currBoard (Board): the current chess board including all the game states
+            player (str): current player
+            verbose (bool): verbose mode
+        
+        Output:
+            score (float): best moving score from AI agent
+            move (Tuple[Tuple[int, int], Tuple[int, int]]): best move from AI agent
+        '''
+        if player == PLAYER_WHITE: # max agent
+            bestScore, bestMove = float('-inf'), None
+            moves = currBoard.getAllLegalMoves()
+            print(f"moves: {moves}")
+            for move in moves:
+                score = 0
+                start, end = move[0], move[1]
+                piece = currBoard.getPiece(start[0], start[1])
+                assert(piece.getPlayer() == player)
+                
+                if piece.unmoved and piece.getName().upper() != 'K': # veiled piece
+                    probs = currBoard.getProbabilityOfVeiledPiece(piece)
+                    pieceTypes = ['P', 'R', 'N', 'B', 'Q']
+                    for i in range(len(probs)):
+                        simBoard = copy.deepcopy(currBoard) # board for expectiminimax child state simulation
+                        prob, pieceType = probs[i], pieceTypes[i]
+                        # perform move and let the piece unveil to the selected piece type
+                        simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                        originalPiece = simBoard.getPiece(end[0], end[1])
+                        expectedPiece = simBoard.makePiece(pieceType, end[0], end[1], player)
+                        simBoard.whitePieces.remove(originalPiece)
+                        simBoard.setPiece(end[0], end[1], expectedPiece)
+                        simBoard.whitePieces.append(expectedPiece)
+                        board, gameInfo = self.convertToModelInput(simBoard)
+                        if currBoard.gameOver:
+                            if currBoard.winner == 1: pieceScore = float('inf') # player white wins
+                            elif currBoard.winner == -1: pieceScore = float('-inf')# player black wins
+                            else: pieceScore = 0 # draw
+                        else: pieceScore = model(board.float(), gameInfo.float())
+                        score += pieceScore*prob
+                else: # unveiled piece
+                    simBoard = copy.deepcopy(currBoard)
+                    simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                    board, gameInfo = self.convertToModelInput(simBoard)
+                    if currBoard.gameOver:
+                        if currBoard.winner == 1: pieceScore = float('inf') # player white wins
+                        elif currBoard.winner == -1: pieceScore = float('-inf')# player black wins
+                        else: pieceScore = 0 # draw
+                    else: pieceScore = model(board.float(), gameInfo.float())
+                    score += pieceScore
+                    
+                if score >= bestScore:
+                    bestScore = score
+                    bestMove = move
+            
+            return bestScore, bestMove
+        
+        elif player == PLAYER_BLACK: # min agent
+            bestScore, bestMove = float('inf'), None
+            moves = currBoard.getAllLegalMoves()
+            print(f"moves: {moves}")
+            for move in moves:
+                score = 0
+                start, end = move[0], move[1]
+                piece = currBoard.getPiece(start[0], start[1])
+                assert(piece.getPlayer() == player)
+                if piece.unmoved and piece.getName().upper() != 'K': # veiled piece
+                    probs = currBoard.getProbabilityOfVeiledPiece(piece)
+                    pieceTypes = ['P', 'R', 'N', 'B', 'Q']
+                    for i in range(len(probs)):
+                        simBoard = copy.deepcopy(currBoard) # board for expectiminimax child state simulation
+                        prob, pieceType = probs[i], pieceTypes[i]
+                        # perform move and let the piece unveil to the selected piece type
+                        simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                        originalPiece = simBoard.getPiece(end[0], end[1])
+                        expectedPiece = simBoard.makePiece(pieceType, end[0], end[1], player)
+                        simBoard.blackPieces.remove(originalPiece)
+                        simBoard.setPiece(end[0], end[1], expectedPiece)
+                        simBoard.blackPieces.append(expectedPiece)
+                        board, gameInfo = self.convertToModelInput(simBoard)
+                        pieceScore = model(board.float(), gameInfo.float())
+                        score += pieceScore*prob
+                else: # unveiled piece
+                    simBoard = copy.deepcopy(currBoard)
+                    simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                    board, gameInfo = self.convertToModelInput(simBoard)
+                    pieceScore = model(board.float(), gameInfo.float())
+                    score += pieceScore
 
-    move2 = ('E7', 'E5')
-    board.move(move2[0], move2[1]) # can be different pieces after unveiling
-    fen = board.boardToFEN()
-    print(fen)
-    ai.evaluate(board, True)
-    board.printBoard()
+                if score <= bestScore:
+                    bestScore = score
+                    bestMove = move
+            
+            return bestScore, bestMove
 
-    print("============================")
-    score, move = ai.competentAIMove(verbose=True)
-    print(f"score: {score}")
-    print(f"move: {move}")
-    move3 = board.convertTupleToCoord(move[0]), board.convertTupleToCoord(move[1])
-    board.move(move3[0], move3[1]) # competent AI move
-    fen = board.boardToFEN()
-    print(fen)
-    board.printBoard()
+        
+    def expertAIMove(self, verbose):
+        '''
+        Expert level AI move--evaluated expected best moves recommended by nn-based content filtering recommendation model
 
-    print("============================")
-    score, move = ai.competentAIMove(verbose=True)
-    print(f"score: {score}")
-    print(f"move: {move}")
-    move4 = board.convertTupleToCoord(move[0]), board.convertTupleToCoord(move[1])
-    board.move(move4[0], move4[1]) # competent AI move
-    fen = board.boardToFEN()
-    print(fen)
-    board.printBoard()
+        Output:
+            score (float): best moving score from AI agent
+            move (Tuple[Tuple[int, int], Tuple[int, int]]): best move from AI agent
+        '''
+        model = VeiledChessNet()
+        model.load_state_dict(torch.load("./models/best_model.pth"))
+        return self.moveFromModel(model, self.GameBoard, self.GameBoard.currPlayer, verbose)

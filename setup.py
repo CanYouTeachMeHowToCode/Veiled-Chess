@@ -11,14 +11,16 @@ from scripts.dataset import VeiledChessDataset
 from scripts.simulateData import generateData
 from scripts.processData import loadAndProcessData
 
+# Directory for storing training dataset
 dataDir = './data'
+
+# generate the training dataset if it currently does not exist
 if not os.path.exists(dataDir): 
     # generate data of competent white AI vs novice black AI (can be customized)
     generateData(10, os.path.join(dataDir, 'data_white.csv'), 1, 0) 
 
-# load and process data
+# Load and process data
 df = loadAndProcessData(dataDir)
-print(df)
 
 def strToList(s): # convert the string representation of 2D list to actual 2D list
     strList = [s.strip('][').split(', ') for s in s.strip('][').split('], [')]
@@ -37,22 +39,32 @@ def encodeBoard(boards): # encode all the boards using ordinal encoding
 def encodePlayer(player):
     return 1 if player == PLAYER_WHITE else -1
 
+def normalizeScores(scores):
+    scores[scores == np.inf] = 1e5 # replace infinity values with large finite numbers
+    scores[scores == -np.inf] = -1e5
+    scoresCentered = scores-np.mean(scores)
+    return scoresCentered / np.max(np.abs(scoresCentered))
+
+# Convert chess boards from string of 2D list to actual 2D list
 boards = np.array(df['board'].apply(strToList).tolist())
-boardData = encodeBoard(boards)
+
+# Encode board using ordinal encoding
+boardData = encodeBoard(boards) 
+
+# Reshape the data to "minic an grayscale image" to fit with the model input 
 boardData = np.reshape(boardData, (boardData.shape[0], 1, boardData.shape[1], boardData.shape[2]))
-print(boardData)
 
+# Encode player data by converting white player to 1 and black player to -1
 playerData = np.array(df['player'].apply(encodePlayer).tolist()) 
-gameInfoData = np.array(df['gameInfo'].apply(ast.literal_eval).tolist()) 
-scores = np.array(df['score'].tolist()) 
-print(scores)
-# normalize the scores
-scores[scores == np.inf] = 1e5 # replace infinity values with large finite numbers
-scores[scores == -np.inf] = -1e5
-scoresCentered = scores-np.mean(scores)
-scoreData = scoresCentered / np.max(np.abs(scoresCentered))
-print(f"scoreData: {scoreData}")
 
+# Convert castling info from string of list to actual list
+gameInfoData = np.array(df['gameInfo'].apply(ast.literal_eval).tolist()) 
+
+# Convert and normalize the scores
+scores = np.array(df['score'].tolist()) 
+scoreData = normalizeScores(scores) 
+
+# Combine the castling info and player info together
 combinedGameInfoData = np.hstack((playerData.reshape(-1, 1), gameInfoData))
 
 # Create datasets and dataloaders with train-test split
@@ -68,7 +80,7 @@ model = VeiledChessNet().to(device)
 optimizer = optim.RMSprop(model.parameters(), lr=LR)
 criterion = nn.MSELoss()
 
-# directory for storing best model so far
+# Directory for storing best model so far
 modelDir = './models'
 
 # Training
