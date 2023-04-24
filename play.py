@@ -1,15 +1,28 @@
+# Script for human player vs AI agent
 from scripts.board import Board
+from scripts.ai import AI
+from scripts.macro import *
 
 if __name__ == '__main__':
-    game = Board()
+    GameBoard = Board()
     print("Game start")
-    game.printBoard()
+    GameBoard.printBoard()
     print("Real Board: ")
-    game.printRealBoard()
-    while not game.gameOver:
+    GameBoard.printRealBoard()
+    print("Don't look at the real board during the competition. It's Cheating!")
+    blackAI = AI(GameBoard, 3) # can be modified to customized later
+    while not GameBoard.gameOver:
         print()
-        print("{}'s turn".format(game.currPlayer))
-        start = input("Enter starting position: ")
-        end = input("Enter ending position: ")
-        game.move(start, end)
-        game.printBoard()
+        player = GameBoard.currPlayer
+        print("{}'s turn".format(player))
+        if player == PLAYER_WHITE: # can be modified to customized later
+            start = input("Enter starting position: ")
+            end = input("Enter ending position: ")
+            GameBoard.move(start, end)
+        else: 
+            start, end = blackAI.nextMove()[1]
+            start, end = GameBoard.convertTupleToCoord(start), GameBoard.convertTupleToCoord(end)
+            GameBoard.move(start, end)
+        GameBoard.printBoard()
+
+

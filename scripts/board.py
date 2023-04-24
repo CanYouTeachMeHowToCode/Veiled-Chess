@@ -82,6 +82,7 @@ class Board:
         elif pieceType == "King": return 'k' if player == PLAYER_WHITE else 'K'
 
     def makePiece(self, pieceType, r, c, player):
+        pieceType = pieceType.upper()
         if pieceType == 'P': newPiece = Pawn(pieceType, r, c, player)
         elif pieceType == 'N': newPiece = Knight(pieceType, r, c, player)
         elif pieceType == 'B': newPiece = Bishop(pieceType, r, c, player)
