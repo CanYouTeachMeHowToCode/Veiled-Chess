@@ -22,13 +22,15 @@ def app():
         return board
 
     def convertBoard(board):
-        convertedBoard = []
+        convertedBoard = [' ABCDEFGH']
         for r in range(BOARD_SIZE):
-            row = ''
+            row = f'{BOARD_SIZE-r}'
             for c in range(BOARD_SIZE):
                 pieceType = board[r][c]
                 row += UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.find(pieceType)]
+            row += f'{BOARD_SIZE-r}'
             convertedBoard.append(row)
+        convertedBoard.append(' ABCDEFGH')
         return convertedBoard
     
     board = getBoard()
@@ -97,6 +99,7 @@ def app():
             GameBoard = Board()
             GameBoard.whitePieces = []
             GameBoard.blackPieces = []
+            GameBoard.currPlayer = currPlayer
             for r in range(BOARD_SIZE):
                 for c in range(BOARD_SIZE):
                     if board[r][c] == '.': GameBoard.setPiece(r, c, EMPTY)
