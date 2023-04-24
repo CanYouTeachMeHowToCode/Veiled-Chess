@@ -6,7 +6,7 @@ from scripts.board import Board
 from scripts.ai import AI
 from scripts.macro import *
 
-def generateData(numGames):
+def generateData(numGames, path, whiteLevel, blackLevel):
     '''
     Function for generating dataset for training nn-based content filtering model;
     Dataset columns:
@@ -17,6 +17,9 @@ def generateData(numGames):
 
     Input:
         numGames (int): number of games to player to generate the dataset
+        path (str): path of output csv file
+        whiteLevel (int): level of AI agent for player white
+        blackLevel (int): level of AI agent for player black
     
     Output:
         data (pd.DataFrame): dataset for training in pandas dataframe format
@@ -31,10 +34,8 @@ def generateData(numGames):
         GameBoard.printBoard()
         print("Real Board: ")
         GameBoard.printRealBoard()
-        whiteAI = AI(GameBoard, 1) # competent AI
-        blackAI = AI(GameBoard, 0) # novice AI
-        # whiteAI = AI(GameBoard, 0) # novice AI
-        # blackAI = AI(GameBoard, 1) # competent AI
+        whiteAI = AI(GameBoard, whiteLevel) 
+        blackAI = AI(GameBoard, blackLevel)
         sys.stdin = io.StringIO('q\n'*100000) # default pawn promotion to queen for AI (may be modified later)
         while not GameBoard.gameOver:
             print()
@@ -50,8 +51,7 @@ def generateData(numGames):
             data.at[index, 'score'] = score
             print(data)
             print(len(data))
-            data.to_csv('data/data_white_2.csv', index=False)
-            # data.to_csv('data/data_black_2.csv', index=False)
+            data.to_csv(path, index=False)
             
             GameBoard.move(start, end, verbose=True)
             GameBoard.printBoard()

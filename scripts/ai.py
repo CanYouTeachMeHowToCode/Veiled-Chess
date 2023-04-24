@@ -53,6 +53,10 @@ class AI():
     def competentAIMove(self, verbose):
         '''
         Competent level AI move--evaluated best moves with stockfish board evaluation
+        NOTE: this function is indeed a "cheating" function for dataset simulation, since it 
+        tries out the possible moves and unveiled the chess piece directly and perform evaluation, 
+        which violates the rule of real-time player veiled chess; therefore, we cannot
+        directly use this function for predicting the next move 
 
         Output:
             score (float): best moving score from AI agent

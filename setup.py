@@ -1,18 +1,23 @@
 # Script to set up project
 import numpy as np
+import os
 import ast
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from scripts.macro import *
 from scripts.model import VeiledChessNet
 from scripts.dataset import VeiledChessDataset
-from scripts.macro import *
+from scripts.simulateData import generateData
 from scripts.processData import loadAndProcessData
 
-# TODO: if !os.exists(data) or data folder is empty: simulate data
+dataDir = './data'
+if not os.path.exists(dataDir): 
+    # generate data of competent white AI vs novice black AI (can be customized)
+    generateData(10, os.path.join(dataDir, 'data_white.csv'), 1, 0) 
 
 # load and process data
-df = loadAndProcessData('./data')
+df = loadAndProcessData(dataDir)
 print(df)
 
 def strToList(s): # convert the string representation of 2D list to actual 2D list
