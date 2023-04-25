@@ -1,4 +1,4 @@
-# Script for human player vs AI agent
+# Script for interactive playing (playing vs another player, playing vs AI agents, etc.)
 from scripts.board import Board
 from scripts.ai import AI
 from scripts.macro import *

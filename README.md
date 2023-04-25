@@ -2,7 +2,7 @@
 
 > #### A Veiled Chess Game created by Yilun Wu (AIPI540 Spring 2023 Individual Project)
 
-## Project Description
+## Introduction & Project Description
 Chess is a famous board game of strategy and skill that has captivated players worldwide over centuries. As a perfect information game, Artificial Intelligence (AI) agents and engines with strong computing power emerge and prosper in recent decades, and the current cutting-edge Chess AI named *StockFish* is proved to be almost undefeatable by any human among the world. However, it might be another story if AI plays a variant of Chess that is an imperfect information game, in which some of the information is hidden for each player. Here comes the new variant of Chess: *Veiled Chess*. 
 
 The rules of this variant are almost the same as Chess, except for the following rules:
@@ -11,7 +11,7 @@ The rules of this variant are almost the same as Chess, except for the following
 - After each move of a “veiled” piece, it “unveils”. That is, it becomes the chess it truly is and obeys the moving rules of itself.
 - If one of the player's “unveiled” pieces is taken by an opponent, the opponent knows what the piece actually is, yet the player does not know.
 
-An example of comparison between normal chess board and *Veiled* chess board is shown below:
+An example of comparison between normal chess board (left) and *Veiled* chess board (right) after the move series `1.e4 e5 2♗c4 ♝c5 3.♘f3 ♞f6 4.♘c3 d6 5.O-O ♛e7` is shown below:
 <table>
   <tr>
     <td><img src=".images/Normal%20Chess%20Board%20Example.png" alt="Normal Chess Board"></td>
@@ -19,49 +19,63 @@ An example of comparison between normal chess board and *Veiled* chess board is 
   </tr>
 </table>
 
+In this project, I’ll focus on developing the *Veiled Chess* game as well as the recommendation engine for the best moves of *Veiled Chess* to explore if the agent can still outperform most human players in this kind of Chess with far more uncertainties like those AI agents who always beat human beings in Chess.
 
-## Data Source
-For this project, we are using recipes and reviews data from popular cooking website food network.
 
-The recipes dataset contains 522,517 recipes from 312 different categories. This dataset provides information about each recipe like cooking times, servings, ingredients, nutrition, instructions, and more.
-The reviews dataset contains 1,401,982 reviews from 271,907 different users. This dataset provides information about the author, rating, review text, and more.
-
-https://www.kaggle.com/datasets/irkaal/foodcom-recipes-and-reviews
+## Data Sources
+- [*StockFish*](https://stockfishchess.org/) (Open Source Chess Engine)
+  - For computing "expected" evaluation score for veiled chess boards 
+- Veiled Chess Game simulation (details see [simulateData.py](scripts/simulateData.py))
+  - Board 
+    - Current board appears to each player
+  - Game info 
+    - Current player
+    - Castling checks (Can castling kingside/queenside for each player)
 
 ## Project Structure
 ```
 .
-|-- dist (Optional)           ----store temporary files when running api
-|-- data (Optional)           ----store automatically fetched data
-|-- notebooks      
-|   |-- recommendation-2-3.ipynb
-|   |-- recommendation.ipynb
-|   `-- test.ipynb
-|-- saved_models              ----best model will be saved here
-|   `-- best_model.pt
+|-- .images                   ---- Directory for storing images used in README
+|-- data                      ---- Directory for storing simulated data
+|-- models                    ---- Directory for storing (current) best Deep Learning Recommendation models
+|   -- best_model.pth
 |-- scripts
-|   |-- FetchData.py          ----fetch data from s3 and unzip it
-|   |-- RecipesData.py        ----data processing and loading
-|   |-- RecipesModel.py       ----recommendation models
-|   |-- RecipesRecommendor.py ----recommendation models training & evaluation to get final recommendations
-|   `-- clustering.py         ----k-means clustering to group recipes by their cooking time and ingredients for recommendation dataset construction
+|   |-- macro.py              ---- Define necessary game macros & model training parameters
+|   |-- piece.py              ---- Piece class for implementation of Veiled Chess game logic
+|   |-- board.py              ---- Veiled Chess game logic
+|   |-- ai.py                 ---- AI agent using deep learning & non-deep learning approaches
+|   |-- processData.py        ---- Script for dataset processing
+|   |-- simulateData.py       ---- Script for dataset simulation
+|   |-- model.py              ---- Define NN-based content-based filtering recommendation model
 |-- README.md
-|-- api.py                    ----web demo script
-|-- main.py                   ----main function
-`-- requirements.txt
+|-- docker-compose.yml        ---- Docker composing file
+|-- Dockerfile
+|-- setup.py                  ---- Script for setting up the project, including dataset simulation, model training & evaluation 
+|-- play.py                   ---- Script for interactive playing (playing vs another player, playing vs AI agents, etc.)
+|-- main.py                   ---- Main function
+|-- requirements.txt
 ```
 
 ## Requirements
-See `requirements.txt`
+- See `requirements.txt`
 >pip3 install -r requirements.txt
 
-### Run the code
->python3 main.py
+- Install [*StockFish*](https://stockfishchess.org/) to local by following the instructions [here](https://stockfishchess.org/download/)
 
-### Run the web demo
->python3 api.py
+## Usage
 
-open http://127.0.0.1:8000
+### Run the streamlit web app 
+- Locally by running command
+  > streamlit run main.py --server.port=8080
+- Open http://veiled-chess-streamlit.azurewebsites.net
+  - NOTE: Recommendation from Expert AI currently unavailable on the web app if not running locally due to several incompatibility issue of [*StockFish*](https://stockfishchess.org/) during deployment, will fix this issue later.
+
+### Start interactive playing
+- Locally by running command
+  > python3 play.py
+- NOTE: the interactive playing mode is only the rudimentary version (will directly start Player vs Proficient AI mode), will upgrade it and integrate it into web app later.
+
+
 
 ## Architecture Diagram
 ![model architecture diagram](https://user-images.githubusercontent.com/50161537/231304318-7c07c38b-74b0-4ffb-8131-d6dd7bacdc49.png)

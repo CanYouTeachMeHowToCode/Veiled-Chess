@@ -1,4 +1,4 @@
-# Script to set up project
+# Script for setting up the project, including dataset simulation, model training & evaluation 
 import numpy as np
 import os
 import ast

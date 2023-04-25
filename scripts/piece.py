@@ -1,3 +1,4 @@
+# Piece class for implementation of Veiled Chess game logic
 from scripts.macro import * 
 
 class Piece:

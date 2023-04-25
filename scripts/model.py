@@ -1,4 +1,4 @@
-# Define NN-based content filtering recommendation model
+# Define NN-based content-based filtering recommendation model
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
