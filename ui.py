@@ -178,7 +178,3 @@ def app():
                 if piece.unmoved and piece.getName().upper() != 'K': pieceSymbol = '○' if piece.getPlayer() == PLAYER_WHITE else '●'
                 else: pieceSymbol = UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(GameBoard.getPieceAsciiName(piece))]
                 st.write(f"The recommended move is {pieceSymbol} from {start} to {end}.")
-
-# Run the Streamlit app
-if __name__ == '__main__':
-    app()
