@@ -10,7 +10,7 @@ if __name__ == '__main__':
     print("Real Board: ")
     GameBoard.printRealBoard()
     print("Don't look at the real board during the competition. It's Cheating!")
-    blackAI = AI(GameBoard, 3) # can be modified to customized later
+    blackAI = AI(GameBoard, 2) # can be modified to customized later
     while not GameBoard.gameOver:
         print()
         player = GameBoard.currPlayer
