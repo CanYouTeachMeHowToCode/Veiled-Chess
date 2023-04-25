@@ -1,13 +1,23 @@
 # Veiled Chess
 
-> #### A Veiled Chess Game created by Yilun Wu (AIPI540 Spring 2023 individual project)
+> #### A Veiled Chess Game created by Yilun Wu (AIPI540 Spring 2023 Individual Project)
 
 ## Project Description
-The goal of this project is to recommend top recipes according to ingredients present in the kitchen and users' liking.
+Chess is a famous board game of strategy and skill that has captivated players worldwide over centuries. As a perfect information game, Artificial Intelligence (AI) agents and engines with strong computing power emerge and prosper in recent decades, and the current cutting-edge Chess AI named *StockFish* is proved to be almost undefeatable by any human among the world. However, it might be another story if AI plays a variant of Chess that is an imperfect information game, in which some of the information is hidden for each player. Here comes the new variant of Chess: *Veiled Chess*. 
 
-This code implements a recipe recommender system using a neural network. The system is designed to recommend recipes to users based on their past ratings and other users' ratings. The code is based on PyTorch.
+The rules of this variant are almost the same as Chess, except for the following rules:
+- For each player, every piece except for the King is “veiled” in the beginning, and is randomly distributed among the remaining 15 start squares for each side. None of the players knows which piece is which.
+- When a piece is “veiled”, it follows the moving rules of the piece at the same position on the original Chess board. For instance, a white piece at square F2 (a white Pawn located here in Chess) can move to either square F3 or square F4, by following Pawn's moving rules.
+- After each move of a “veiled” piece, it “unveils”. That is, it becomes the chess it truly is and obeys the moving rules of itself.
+- If one of the player's “unveiled” pieces is taken by an opponent, the opponent knows what the piece actually is, yet the player does not know.
 
-![image](https://user-images.githubusercontent.com/44442059/230596869-fdf451c8-6d9d-4ad3-aa82-b55a42e9a6f1.png)
+An example of comparison between normal chess board and *Veiled* chess board is shown below:
+<table>
+  <tr>
+    <td><img src=".images/Normal%20Chess%20Board%20Example.png" alt="Normal Chess Board"></td>
+    <td><img src=".images/Veiled%20Chess%20Board%20Example.png" alt="Veiled Chess Board"></td>
+  </tr>
+</table>
 
 
 ## Data Source
