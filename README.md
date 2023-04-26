@@ -3,7 +3,7 @@
 > #### A Veiled Chess Game created by Yilun Wu (AIPI540 Spring 2023 Individual Project)
 
 ## Introduction & Project Description
-Chess is a famous board game of strategy and skill that has captivated players worldwide over centuries. As a perfect information game, Artificial Intelligence (AI) agents and engines with strong computing power emerge and prosper in recent decades, and the current cutting-edge Chess AI named *StockFish* is proved to be almost undefeatable by any human among the world. However, it might be another story if AI plays a variant of Chess that is an imperfect information game, in which some of the information is hidden for each player. Here comes the new variant of Chess: *Veiled Chess*. 
+Chess is a famous board game of strategy and skill that has captivated players worldwide over centuries. As a perfect information game, Artificial Intelligence (AI) agents and engines with strong computing power emerge and prosper in recent decades, and the current cutting-edge Chess AI named [*StockFish*](https://stockfishchess.org/) is proved to be almost undefeatable by any human among the world. However, it might be another story if AI plays a variant of Chess that is an imperfect information game, in which some of the information is hidden for each player. Here comes the new variant of Chess: *Veiled Chess*. 
 
 The rules of this variant are almost the same as Chess, except for the following rules:
 - For each player, every piece except for the King is “veiled” in the beginning, and is randomly distributed among the remaining 15 start squares for each side. None of the players knows which piece is which.
@@ -32,7 +32,7 @@ In this project, I’ll focus on developing the *Veiled Chess* game as well as t
     - Current player
     - Castling checks (Can castling kingside/queenside for each player)
 
-## Project Structure
+## Project Repository Structure
 ```
 .
 |-- .images                   ---- Directory for storing images used in README
@@ -57,8 +57,8 @@ In this project, I’ll focus on developing the *Veiled Chess* game as well as t
 ```
 
 ## Requirements
-- See `requirements.txt`
->pip3 install -r requirements.txt
+- See `requirements.txt`, or run the following command
+  > pip3 install -r requirements.txt
 
 - Install [*StockFish*](https://stockfishchess.org/) to local by following the instructions [here](https://stockfishchess.org/download/)
 
@@ -77,50 +77,63 @@ In this project, I’ll focus on developing the *Veiled Chess* game as well as t
 
 
 
-## Architecture Diagram
-![model architecture diagram](https://user-images.githubusercontent.com/50161537/231304318-7c07c38b-74b0-4ffb-8131-d6dd7bacdc49.png)
+## Data Processing Pipeline & Deep Learning Recommendation Model
+![Data Processing Pipeline](.images/Data%20Processing%20Pipeline.png)
 
-## Content-based Recipe Recommendation Model 
-### Model Overview 
-This is a content-based recipe recommender system. It generates recommendations based on the features of recipes (i.e., recipe ID, author ID, number of calories, and number of reviews).
+### Deep Learning Recommendation Model (Veiled Chess Net) Architecture
 
-The model is trained using the mean squared error loss function and the Adam optimizer. The training data is split into training and validation datasets, and the model is trained for 10 epochs. The best performing model is saved and later used for generating recommendations.
-
-To generate recommendations, the model is loaded, and the predicted ratings are generated for a set of recipes that the user has not yet rated. The top 10 recipes with the highest predicted ratings are then recommended to the user.
-
-One thing to note is that the model is a neural network model with embeddings and a multi-head attention layer, which are commonly used in natural language processing tasks. The model takes in non-sequential input features, and the attention mechanism is used to focus on relevant features and capture interactions between them.
-
-### MultiHead Attention Model Architecture Details
-- Inputs: recipe ID, author ID, number of calories, and # of reviews
-- Embedding layers 
-  - Convert inputs to embedding vectors and combine them into single vector
-- Multi-head attention layer 
-  - Helps model focus on different parts of input
-
-- 2 fully connected layers
-
-- Sigmoid activation function 
-
+```
+VeiledChessNet(
+  (conv1): Conv2d(1, 32, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2))
+  (conv2): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2))
+  (conv3): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2))
+  (conv4): Conv2d(128, 32, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2))
+  (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (dropout): Dropout(p=0.3, inplace=False)
+  (fc1): Linear(in_features=5, out_features=16, bias=True)
+  (fc2): Linear(in_features=16, out_features=64, bias=True)
+  (out): Linear(in_features=576, out_features=1, bias=True)
+)
+```
+For more details see [model.py](scripts/model.py)
 
 ### Training and Evaluation
-- Use mean squared error (MSE) loss function and Adam optimizer.
-- Train dataset : Validation dataset = 8:2
-- Number of Epochs = 100
-- Model with best performance saved for final recommendation generation 
+- Loss: MSE (mean squared error) loss
+- Optimizer: RMSprop
+- Train dataset size: Validation dataset size = 8:2
+- Number of Epochs: 100
+- Model with best performance (validation loss) saved for final recommendation
+
+## Non-deep Learning Model
+- Expectiminimax
+  - Evaluate each game state using [*StockFish*](https://stockfishchess.org/)
+  - Compute the probability of unveiling to each piece type of each move of veiled piece
+    - High branching factor early stage and so high computational costs 
+  - Compute the expected score by summing up scores from all child states 
 
 ## Results
-![image](https://user-images.githubusercontent.com/50161537/231260130-1bb17a5c-e53c-4e48-901c-7a15dd9de562.jpeg)
-This document provides a recommendation on the performance of a model based on its MAP@k (Mean Average Precision at k) scores. The MAP@k scores were computed for k = 1, 3, 5, and 10, and the results are presented below:
 
-* MAP@1: 0.1321
-* MAP@3: 0.0865
-* MAP@5: 0.0682
-* MAP@10: 0.0485
+- Denote AI Agents
+  - Random move -> Novice AI
+  - Deep Learning Recommendation Model move -> Proficient AI
+  - Expectiminimax move -> Expert AI
 
-The MAP@k is a popular evaluation metric for ranking models, and it measures the average precision at each cutoff k. In this case, the model's performance decreases as the cutoff k increases, indicating that it is better at identifying the top-ranked items than the lower-ranked ones.
+- Results of 100 games (Win/Tie/Lose)
+  - Novice AI vs  Proficient AI: 0/3/97
+  - Novice AI vs Expert AI: 0/0/100
+  - Proficient AI vs Expert AI: 2/9/89
 
-The MAP@1 score of 0.1321 suggests that the model performs reasonably well in identifying the top-ranked item, but there is still room for improvement. The MAP@3 score of 0.0865 indicates that the model's performance drops significantly beyond the first item, suggesting that it may not be as effective in identifying the top three items. The MAP@5 score of 0.0682 and the MAP@10 score of 0.0485 indicate that the model's performance further decreases as more items are considered.
+- Observations
+  - Proficient AI plays well in the early stage but bad at endgames
+  - Expert AI always plays cautiously 
 
-## Application
+## Future Expectations
+- Balance between computational costs and performance for expectiminimax algorithm is vital
+  - StockFish is accurate but costs too much 
+ 
+- More training samples (game logs) for deep learning recommendation model should leads to better performance 
 
-This is a Vue.js application that displays recipe recommendations based on user selections. The application uses the vue-router library to manage navigation and has a main app bar at the top of the page. The app bar contains a Log In button that opens a modal where the user can select their username from a dropdown menu. The app retrieves recipe data from an API using the @tanstack/vue-query library and displays it in a grid of recipe cards. The user can filter the recipe results by category by clicking on a category in the left-hand sidebar. The footer of the page provides information about the project and its developers.
+- Can try various deep models (even pre-trained models) besides the current *VeiledChessNet*
+
+- Still lots of open spaces for game strategies, especially during the early game 
