@@ -69,8 +69,7 @@ In this project, I’ll focus on developing the *Veiled Chess* game as well as t
   - NOTE: Recommendation from Expert AI currently unavailable on the web app if not running locally due to several incompatibility issue of [*StockFish*](https://stockfishchess.org/) during deployment, will fix this issue later.
 
 ### Start interactive playing
-- Locally by running command
-  > python3 play.py
+- Locally by running command `python3 play.py`
 - NOTE: the interactive playing mode is only the rudimentary version (will directly start Player vs Proficient AI mode), will upgrade it and integrate it into web app later.
 
 
