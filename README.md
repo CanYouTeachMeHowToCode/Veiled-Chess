@@ -57,16 +57,14 @@ In this project, I’ll focus on developing the *Veiled Chess* game as well as t
 ```
 
 ## Requirements
-- See `requirements.txt`, or run the following command
-  > pip3 install -r requirements.txt
+- See `requirements.txt`, or run the following command `pip3 install -r requirements.txt`
 
 - Install [*StockFish*](https://stockfishchess.org/) to local by following the instructions [here](https://stockfishchess.org/download/)
 
 ## Usage
 
 ### Run the streamlit web app 
-- Locally by running command
-  > streamlit run main.py --server.port=8080
+- Locally by running command `streamlit run main.py --server.port=8080`
 - Open http://veiled-chess-streamlit.azurewebsites.net
   - NOTE: Recommendation from Expert AI currently unavailable on the web app if not running locally due to several incompatibility issue of [*StockFish*](https://stockfishchess.org/) during deployment, will fix this issue later.
 
