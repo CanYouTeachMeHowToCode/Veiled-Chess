@@ -1,7 +1,7 @@
 # Define veiled chess dataset used for training
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data import random_split
-from scripts.macro import *
+from game.macro import *
 
 class VeiledChessDataset(Dataset):
     def __init__(self, board, gameInfo, labels):

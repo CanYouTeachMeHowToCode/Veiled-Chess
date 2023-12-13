@@ -4,7 +4,7 @@ import copy
 import chess.engine
 import torch
 import numpy as np
-from scripts.macro import *
+from game.macro import *
 from scripts.model import VeiledChessNet
 
 class AI():

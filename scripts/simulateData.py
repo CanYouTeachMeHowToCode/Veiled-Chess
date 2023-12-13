@@ -2,9 +2,9 @@
 import sys
 import io
 import pandas as pd
-from scripts.board import Board
+from game.board import Board
 from scripts.ai import AI
-from scripts.macro import *
+from game.macro import *
 
 def generateData(numGames, path, whiteLevel, blackLevel):
     '''

@@ -5,7 +5,7 @@ import ast
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from scripts.macro import *
+from game.macro import *
 from scripts.model import VeiledChessNet
 from scripts.dataset import VeiledChessDataset
 from scripts.simulateData import generateData

@@ -1,8 +1,8 @@
 # User interface
 import streamlit as st
-from scripts.board import Board
+from game.board import Board
 from scripts.ai import AI
-from scripts.macro import *
+from game.macro import *
 
 # Define the Streamlit app
 def app():
