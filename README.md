@@ -14,8 +14,8 @@ The rules of this variant are almost the same as Chess, except for the following
 An example of comparison between normal chess board (left) and *Veiled* chess board (right) after the move series `1.e4 e5 2♗c4 ♝c5 3.♘f3 ♞f6 4.♘c3 d6 5.O-O ♛e7` is shown below:
 <table>
   <tr>
-    <td><img src=".images/Normal%20Chess%20Board%20Example.png" alt="Normal Chess Board"></td>
-    <td><img src=".images/Veiled%20Chess%20Board%20Example.png" alt="Veiled Chess Board"></td>
+    <td><img src=".snapshots/Normal%20Chess%20Board%20Example.png" alt="Normal Chess Board"></td>
+    <td><img src=".snapshots/Veiled%20Chess%20Board%20Example.png" alt="Veiled Chess Board"></td>
   </tr>
 </table>
 
@@ -35,7 +35,7 @@ In this project, I’ll focus on developing the *Veiled Chess* game as well as t
 ## Project Repository Structure
 ```
 .
-|-- .images                   ---- Directory for storing images used in README
+|-- .snapshots                ---- Directory for storing images used in README
 |-- data                      ---- Directory for storing simulated data
 |-- models                    ---- Directory for storing (current) best Deep Learning Recommendation models
 |   -- best_model.pth
@@ -75,7 +75,7 @@ In this project, I’ll focus on developing the *Veiled Chess* game as well as t
 
 
 ## Data Processing Pipeline & Deep Learning Recommendation Model
-![Data Processing Pipeline](.images/Data%20Processing%20Pipeline.png)
+![Data Processing Pipeline](.snapshots/Data%20Processing%20Pipeline.png)
 
 ### Deep Learning Recommendation Model (Veiled Chess Net) Architecture
 
@@ -134,3 +134,6 @@ For more details see [model.py](scripts/model.py)
 - Can try various deep models (even pre-trained models) besides the current *VeiledChessNet*
 
 - Still lots of open spaces for game strategies, especially during the early game 
+
+## References:
+- [StockFish](https://stockfishchess.org/)
