@@ -36,7 +36,8 @@ def pygameApp():
 	
 	screen.fill((255, 255, 255))
 	drawBoard(screen)
-	
+	pygame.display.flip()
+
 	while not GameBoard.gameOver:
 		drawBoard(screen)
 		for event in pygame.event.get():
@@ -68,14 +69,13 @@ def pygameApp():
 					x, y = event.pos
 					x -= offset_x
 					y -= offset_y
-					screen.fill((255, 255, 255))
-					drawBoard(screen)
 					legalMoves = GameBoard.getLegalMove(draggingFrom[0], draggingFrom[1])
 					for move in legalMoves:
 						pygame.draw.rect(screen, COLOR_GREEN, (move[1]*SQUARE_SIZE, move[0]*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
 					screen.blit(getPieceImage(draggingPiece), (x, y))
 					pygame.display.flip()
-		pygame.display.flip()
+		if not dragging: 
+			pygame.display.flip()
 
 if __name__ == '__main__':
 	pygameApp()
