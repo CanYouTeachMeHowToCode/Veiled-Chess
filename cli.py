@@ -10,7 +10,7 @@ def CLI():
     # print("Real Board: ")
     # GameBoard.printRealBoard()
     # print("Don't look at the real board during the competition. It's Cheating!")
-    blackAI = AI(GameBoard, 2) # can be modified to customized later
+    blackAI = AI(GameBoard, 1) # can be modified to customized later
     while not GameBoard.gameOver:
         print()
         player = GameBoard.currPlayer
@@ -18,12 +18,14 @@ def CLI():
         if player == PLAYER_WHITE: # can be modified to customized later
             start = input("Enter starting position: ")
             end = input("Enter ending position: ")
-            GameBoard.move(start, end)
+            GameBoard.moveCLI(start, end)
         else: 
             start, end = blackAI.nextMove()[1]
             start, end = GameBoard.convertTupleToCoord(start), GameBoard.convertTupleToCoord(end)
-            GameBoard.move(start, end)
+            GameBoard.moveCLI(start, end)
         GameBoard.printBoard()
-    
+
+if __name__ == '__main__':
+    CLI()
 
 

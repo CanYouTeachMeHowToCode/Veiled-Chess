@@ -49,7 +49,7 @@ class AI():
         '''
         move = random.choice(self.getLegalMoves())
         simBoard = copy.deepcopy(self.GameBoard)
-        simBoard.move(simBoard.convertTupleToCoord(move[0]), simBoard.convertTupleToCoord(move[1]), verbose)
+        simBoard.move(move[0], move[1], verbose)
         score = self.evaluate(simBoard, verbose)
         return score, move
     
@@ -71,7 +71,7 @@ class AI():
             bestScore, bestMove = float('-inf'), None
             for move in moves:
                 simBoard = copy.deepcopy(self.GameBoard)
-                simBoard.move(simBoard.convertTupleToCoord(move[0]), simBoard.convertTupleToCoord(move[1]), verbose)
+                simBoard.move(move[0], move[1], verbose)
                 score = self.evaluate(simBoard, verbose)
                 if score >= bestScore:
                     bestScore = score
@@ -81,7 +81,7 @@ class AI():
             bestScore, bestMove = float('inf'), None
             for move in moves:
                 simBoard = copy.deepcopy(self.GameBoard)
-                simBoard.move(simBoard.convertTupleToCoord(move[0]), simBoard.convertTupleToCoord(move[1]), verbose)
+                simBoard.move(move[0], move[1], verbose)
                 score = self.evaluate(simBoard, verbose)
                 if score <= bestScore:
                     bestScore = score
@@ -137,7 +137,7 @@ class AI():
                         simBoard = copy.deepcopy(currBoard) # board for expectiminimax child state simulation
                         prob, pieceType = probs[i], pieceTypes[i]
                         # perform move and let the piece unveil to the selected piece type
-                        simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                        simBoard.move(start, end, verbose)
                         originalPiece = simBoard.getPiece(end[0], end[1])
                         expectedPiece = simBoard.makePiece(pieceType, end[0], end[1], player)
                         simBoard.whitePieces.remove(originalPiece)
@@ -152,7 +152,7 @@ class AI():
                         score += pieceScore*prob
                 else: # unveiled piece
                     simBoard = copy.deepcopy(currBoard)
-                    simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                    simBoard.move(start, end, verbose)
                     board, gameInfo = self.convertToModelInput(simBoard)
                     if currBoard.gameOver:
                         if currBoard.winner == 1: pieceScore = float('inf') # player white wins
@@ -182,7 +182,7 @@ class AI():
                         simBoard = copy.deepcopy(currBoard) # board for expectiminimax child state simulation
                         prob, pieceType = probs[i], pieceTypes[i]
                         # perform move and let the piece unveil to the selected piece type
-                        simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                        simBoard.move(start, end, verbose)
                         originalPiece = simBoard.getPiece(end[0], end[1])
                         expectedPiece = simBoard.makePiece(pieceType, end[0], end[1], player)
                         simBoard.blackPieces.remove(originalPiece)
@@ -193,7 +193,7 @@ class AI():
                         score += pieceScore*prob
                 else: # unveiled piece
                     simBoard = copy.deepcopy(currBoard)
-                    simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                    simBoard.move(start, end, verbose)
                     board, gameInfo = self.convertToModelInput(simBoard)
                     pieceScore = model(board.float(), gameInfo.float())
                     score += pieceScore
@@ -241,7 +241,7 @@ class AI():
                         simBoard = copy.deepcopy(currBoard) # board for expectiminimax child state simulation
                         prob, pieceType = probs[i], pieceTypes[i]
                         # perform move and let the piece unveil to the selected piece type
-                        simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                        simBoard.move(start, end, verbose)
                         originalPiece = simBoard.getPiece(end[0], end[1])
                         expectedPiece = simBoard.makePiece(pieceType, end[0], end[1], player)
                         simBoard.whitePieces.remove(originalPiece)
@@ -251,7 +251,7 @@ class AI():
                         score += pieceScore*prob
                 else: # unveiled piece
                     simBoard = copy.deepcopy(currBoard)
-                    simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                    simBoard.move(start, end, verbose)
                     pieceScore, _ = self.expectiminimax(simBoard, PLAYER_BLACK, depth-1, verbose)
                     score += pieceScore
                     
@@ -276,7 +276,7 @@ class AI():
                         simBoard = copy.deepcopy(currBoard) # board for expectiminimax child state simulation
                         prob, pieceType = probs[i], pieceTypes[i]
                         # perform move and let the piece unveil to the selected piece type
-                        simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                        simBoard.move(start, end, verbose)
                         originalPiece = simBoard.getPiece(end[0], end[1])
                         expectedPiece = simBoard.makePiece(pieceType, end[0], end[1], player)
                         simBoard.blackPieces.remove(originalPiece)
@@ -286,7 +286,7 @@ class AI():
                         score += pieceScore*prob
                 else: # unveiled piece
                     simBoard = copy.deepcopy(currBoard)
-                    simBoard.move(simBoard.convertTupleToCoord(start), simBoard.convertTupleToCoord(end), verbose)
+                    simBoard.move(start, end, verbose)
                     pieceScore, _ = self.expectiminimax(simBoard, PLAYER_WHITE, depth-1, verbose)
                     score += pieceScore
 

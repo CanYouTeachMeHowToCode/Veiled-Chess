@@ -71,7 +71,7 @@ class Board:
     def setPiece(self, r, c, piece):
         self._board[r][c] = piece
 
-    def getPieceAsciiName(self, piece):
+    def getPieceAsciiName(self, piece): # provisional piece type (either veiled or unveiled)
         player = piece.getPlayer()
         pieceType = piece.__class__.__name__
         if pieceType == "Pawn": return 'p' if player == PLAYER_WHITE else 'P'
@@ -566,22 +566,27 @@ class Board:
         if letter not in "ABCDEFGH" or number not in range(BOARD_SIZE): return -1, -1
         return number, ord(letter)-ord('A')
 
-    def move(self, start, end, verbose=True): # for terminal version used only
-        r1, c1 = self.convertCoordToTuple(start)
-        r2, c2 = self.convertCoordToTuple(end)
+    def moveCLI(self, start, end): # for terminal version used only
+        self.move(self.convertCoordToTuple(start), self.convertCoordToTuple(end))
+  
+    def move(self, start, end, verbose=True): 
+        r1, c1 = start
+        r2, c2 = end
         piece = self.getPiece(r1, c1)
         if piece != EMPTY and self.currPlayer == piece.getPlayer():
             legalMoves = self.getLegalMove(r1, c1)
             if (r2, c2) in legalMoves:
                 _, firstMove = self.doMove((r1, c1), (r2, c2))
-                if firstMove: self.unveil(piece)
+                if verbose: print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(piece))], start=start, end=end))
+                if firstMove: self.unveil(piece, verbose)
+
                 # pawn promotion check
                 canPromote = False
                 if self.getPieceAsciiName(piece).upper() == 'P': canPromote = self.promoteCheck(self.currPlayer, (r2, c2))
                 if verbose:
                     if canPromote: print("{pawn} promotes to {piece}".format(pawn=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(['P', 'p'][int(self.currPlayer == PLAYER_WHITE)])], \
                                                                             piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(self.getPiece(r2, c2)))]))
-                    else: print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(piece))], start=start, end=end))
+                
                 self.switchPlayer()
                 if self.currPlayer == PLAYER_WHITE: self.numFullMoves += 1
                 self.gameLog.append((start, end))
@@ -596,7 +601,7 @@ class Board:
         elif piece == EMPTY: print("This square has no pieces. Please try another one.")
         else: print("You cannot move your opponent's piece. Please try another one.")
 
-    def unveil(self, piece):
+    def unveil(self, piece, verbose):
         '''
         Unveil the current piece to the real piece after the first move.
 
@@ -607,12 +612,13 @@ class Board:
             None
         '''
         assert(not piece.unmoved)
-        pieceType, r, c, player = piece.getName().upper(), piece.getRow(), piece.getCol(), piece.getPlayer()
+        origPieceType, pieceType, r, c, player = self.getPieceAsciiName(piece), piece.getName(), piece.getRow(), piece.getCol(), piece.getPlayer()
         self.whitePieces.remove(piece) if player == PLAYER_WHITE else self.blackPieces.remove(piece)
         newPiece = self.makePiece(pieceType, r, c, player)
         newPiece.unmoved = False # mark as unveiled
         self.whitePieces.append(newPiece) if player == PLAYER_WHITE else self.blackPieces.append(newPiece)
         self.setPiece(r, c, newPiece)
+        if verbose and pieceType.upper() != 'K': print(f'{UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(origPieceType)]} at {(r, c)} is unveiled to {UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(pieceType)]}')
 
     '''
     Pawn Promotion Rules:
