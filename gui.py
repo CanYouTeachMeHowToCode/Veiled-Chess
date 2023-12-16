@@ -11,6 +11,7 @@ def pygameApp():
 	screen = pygame.display.set_mode(WINDOW_SIZE)
 	pygame.display.set_caption("Veiled Chess")
 	SQUARE_SIZE = WINDOW_SIZE[0] // BOARD_SIZE
+	font = pygame.font.Font(None, 36)
 	GameBoard = Board()
 	dragging = False
 	draggingPiece = None
@@ -28,7 +29,13 @@ def pygameApp():
 		for r in range(BOARD_SIZE):
 			for c in range(BOARD_SIZE):
 				color = COLOR_WHITE if (r+c) % 2 == 0 else COLOR_BLACK
+				coordColor = COLOR_BLACK if color == COLOR_WHITE else COLOR_WHITE
 				pygame.draw.rect(screen, color, (c*SQUARE_SIZE, r*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+				# row coordinates
+				if c == 0: screen.blit(font.render(str(BOARD_SIZE-r), 1, coordColor), (5, 5+r*SQUARE_SIZE))
+				# col coordinates
+				if r == 7: screen.blit(font.render(chr(ord('A')+c), 1, coordColor), (c*SQUARE_SIZE+SQUARE_SIZE-20, WINDOW_SIZE[1]-20))
+
 				piece = GameBoard.getPiece(r, c)
 				if piece != EMPTY:
 					pieceImage = getPieceImage(piece)
