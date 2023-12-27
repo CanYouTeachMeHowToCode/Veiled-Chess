@@ -39,6 +39,9 @@ def pygameApp():
 				piece = GameBoard.getPiece(r, c)
 				if piece != EMPTY:
 					pieceImage = getPieceImage(piece)
+					# draw red circle with gradient color to mark that the king piece is on check
+					if piece.getName().upper() == 'K' and GameBoard.isOnCheck(GameBoard.currPlayer) and piece.getPlayer() == GameBoard.currPlayer: 
+						pygame.draw.circle(screen, COLOR_RED, (c*SQUARE_SIZE+SQUARE_SIZE//2, r*SQUARE_SIZE+SQUARE_SIZE//2), SQUARE_SIZE//2)
 					screen.blit(pieceImage, (c*SQUARE_SIZE+(SQUARE_SIZE-pieceImage.get_width())//2, r*SQUARE_SIZE+(SQUARE_SIZE-pieceImage.get_height())//2))
 	
 	screen.fill((255, 255, 255))
