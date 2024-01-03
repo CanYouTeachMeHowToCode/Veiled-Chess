@@ -18,6 +18,10 @@ def pygameApp():
 	draggingFrom = None
 	offset_x, offset_y = 0, 0
 
+	# load sound effects
+	capturedSound = pygame.mixer.Sound('sounds/capture.wav')
+	moveSound = pygame.mixer.Sound('sounds/move.wav')
+
 	def getPieceImage(piece):
 		pieceType = piece.__class__.__name__
 		piecePlayer = piece.getPlayer()
@@ -71,7 +75,9 @@ def pygameApp():
 					piece = GameBoard.getPiece(draggingFrom[0], draggingFrom[1])
 					legalMoves = GameBoard.getLegalMove(draggingFrom[0], draggingFrom[1])
 					if (r, c) in legalMoves:
-						GameBoard.move((draggingFrom[0], draggingFrom[1]), (r, c))
+						pieceTaken = GameBoard.move((draggingFrom[0], draggingFrom[1]), (r, c))
+						if pieceTaken == EMPTY: moveSound.play()
+						else: capturedSound.play()
 					dragging = False
 					draggingPiece = None
 			elif event.type == pygame.MOUSEMOTION:

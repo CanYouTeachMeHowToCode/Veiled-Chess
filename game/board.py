@@ -576,7 +576,7 @@ class Board:
         if piece != EMPTY and self.currPlayer == piece.getPlayer():
             legalMoves = self.getLegalMove(r1, c1)
             if (r2, c2) in legalMoves:
-                _, firstMove = self.doMove((r1, c1), (r2, c2))
+                pieceTaken, firstMove = self.doMove((r1, c1), (r2, c2))
                 if verbose: print("{piece} at {start} moves to {end}".format(piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(piece))], start=start, end=end))
                 if firstMove: self.unveil(piece, verbose)
 
@@ -596,6 +596,7 @@ class Board:
                     return 
                 elif self.isOnCheck(self.currPlayer): 
                     if verbose: print("check!")
+                return pieceTaken
             else: print("Invalid move. Please try another one.")
 
         elif piece == EMPTY: print("This square has no pieces. Please try another one.")
