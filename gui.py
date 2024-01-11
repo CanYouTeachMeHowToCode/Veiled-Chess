@@ -17,6 +17,7 @@ def pygameApp():
 	draggingPiece = None
 	draggingFrom = None
 	offset_x, offset_y = 0, 0
+	lastMove = None
 
 	# load sound effects
 	capturedSound = pygame.mixer.Sound('sounds/capture.wav')
@@ -30,6 +31,7 @@ def pygameApp():
 		return pieceImage
 	
 	def drawBoard(screen):
+		# draw the game board 
 		for r in range(BOARD_SIZE):
 			for c in range(BOARD_SIZE):
 				color = COLOR_WHITE if (r+c) % 2 == 0 else COLOR_BLACK
@@ -39,7 +41,14 @@ def pygameApp():
 				if c == 0: screen.blit(font.render(str(BOARD_SIZE-r), 1, coordColor), (5, 5+r*SQUARE_SIZE))
 				# col coordinates
 				if r == 7: screen.blit(font.render(chr(ord('A')+c), 1, coordColor), (c*SQUARE_SIZE+SQUARE_SIZE-20, WINDOW_SIZE[1]-20))
-
+		# draw the last move tiles
+		if lastMove is not None:
+			start, end = lastMove
+			pygame.draw.rect(screen, COLOR_YELLOW, (start[1]*SQUARE_SIZE, start[0]*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+			pygame.draw.rect(screen, COLOR_YELLOW, (end[1]*SQUARE_SIZE, end[0]*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+		# draw pieces
+		for r in range(BOARD_SIZE):
+			for c in range(BOARD_SIZE):
 				piece = GameBoard.getPiece(r, c)
 				if piece != EMPTY:
 					pieceImage = getPieceImage(piece)
@@ -76,6 +85,7 @@ def pygameApp():
 					legalMoves = GameBoard.getLegalMove(draggingFrom[0], draggingFrom[1])
 					if (r, c) in legalMoves:
 						pieceTaken = GameBoard.move((draggingFrom[0], draggingFrom[1]), (r, c))
+						lastMove = ((draggingFrom[0], draggingFrom[1]), (r, c))
 						if pieceTaken == EMPTY: moveSound.play()
 						else: capturedSound.play()
 					dragging = False
@@ -90,6 +100,7 @@ def pygameApp():
 						pygame.draw.rect(screen, COLOR_GREEN, (move[1]*SQUARE_SIZE, move[0]*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
 					screen.blit(getPieceImage(draggingPiece), (x, y))
 					pygame.display.flip()
+					
 		if not dragging: 
 			pygame.display.flip()
 
