@@ -119,10 +119,10 @@ class Board:
                     else: asciiName = pieceName
                 row.append(asciiName)
             board.append(row)
-        gameStateInfo = [self.canCastlingKingsideFEN(PLAYER_WHITE),
-                         self.canCastlingQueensideFEN(PLAYER_WHITE),
-                         self.canCastlingKingsideFEN(PLAYER_BLACK),
-                         self.canCastlingQueensideFEN(PLAYER_BLACK)]
+        gameStateInfo = [self.canCastlingKingside(PLAYER_WHITE),
+                         self.canCastlingQueenside(PLAYER_WHITE),
+                         self.canCastlingKingside(PLAYER_BLACK),
+                         self.canCastlingQueenside(PLAYER_BLACK)]
         return board, gameStateInfo
 
     def getProvisionalBoard(self):
@@ -214,10 +214,10 @@ class Board:
         fen += 'w' if self.currPlayer == PLAYER_WHITE else 'b'
         fen += ' '
         castlingRights = ''
-        if self.canCastlingKingsideFEN(PLAYER_WHITE): castlingRights += 'K'
-        if self.canCastlingQueensideFEN(PLAYER_WHITE): castlingRights += 'Q'
-        if self.canCastlingKingsideFEN(PLAYER_BLACK): castlingRights += 'k'
-        if self.canCastlingQueensideFEN(PLAYER_BLACK): castlingRights += 'q'
+        if self.canCastlingKingside(PLAYER_WHITE): castlingRights += 'K'
+        if self.canCastlingQueenside(PLAYER_WHITE): castlingRights += 'Q'
+        if self.canCastlingKingside(PLAYER_BLACK): castlingRights += 'k'
+        if self.canCastlingQueenside(PLAYER_BLACK): castlingRights += 'q'
         fen += castlingRights if castlingRights != '' else '-'
         fen += ' '
         fen += '-' # no en passant rule in veiled chess 
@@ -435,37 +435,6 @@ class Board:
     3. The king is not currently in check.
     4. The king does not pass through or finish on a square that is attacked by an enemy piece.
     '''
-    def canCastlingKingsideFEN(self, player):
-        '''
-        Check whether the current player can castling kingside using the FEN notation rule
-
-        Input:
-            player (str): current player
-        
-        Output:
-            canCastle (bool): can castling kingside or not
-        '''
-        return self.getPiece(0, 7) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 7)) == 'R' and self.getPiece(0, 7).unmoved and \
-                self.getPiece(0, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 4)) == 'K' and self.getPiece(0, 4).unmoved \
-                if player == PLAYER_BLACK else \
-                self.getPiece(7, 7) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 7)) == 'r' and self.getPiece(7, 7).unmoved and \
-                self.getPiece(7, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 4)) == 'k' and self.getPiece(7, 4).unmoved
-    
-    def canCastlingQueensideFEN(self, player):
-        '''
-        Check whether the current player can castling queenside using the FEN notation rule
-
-        Input:
-            player (str): current player
-        
-        Output:
-            canCastle (bool): can castling queenside or not
-        '''
-        return self.getPiece(0, 0) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 0)) == 'R' and self.getPiece(0, 0).unmoved and \
-                self.getPiece(0, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 4)) == 'K' and self.getPiece(0, 4).unmoved \
-                if player == PLAYER_BLACK else \
-                self.getPiece(7, 0) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 0)) == 'r' and self.getPiece(7, 0).unmoved and \
-                self.getPiece(7, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 4)) == 'k' and self.getPiece(7, 4).unmoved
     
     def canCastlingKingside(self, player):
         '''
@@ -477,12 +446,15 @@ class Board:
         Output:
             canCastle (bool): can castling kingside or not
         '''
-        return self.canCastlingKingsideFEN(player) and \
-                self.getPiece(0, 5) == EMPTY and not self.isThreatened(player, (0, 5)) and \
-                self.getPiece(0, 6) == EMPTY and not self.isThreatened(player, (0, 6)) \
-                if player == PLAYER_BLACK else self.canCastlingKingsideFEN(player) and \
-                self.getPiece(7, 5) == EMPTY and not self.isThreatened(player, (7, 5)) and \
-                self.getPiece(7, 6) == EMPTY and not self.isThreatened(player, (7, 6))
+        return self.getPiece(0, 7) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 7)) == 'R' and self.getPiece(0, 7).unmoved and \
+                self.getPiece(0, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 4)) == 'K' and self.getPiece(0, 4).unmoved and \
+                self.getPiece(0, 5) == EMPTY and self.getPiece(0, 6) == EMPTY and \
+                not self.isThreatened(player, (0, 4)) and not self.isThreatened(player, (0, 5)) and not self.isThreatened(player, (0, 6)) \
+                if player == PLAYER_BLACK else \
+                self.getPiece(7, 7) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 7)) == 'r' and self.getPiece(7, 7).unmoved and \
+                self.getPiece(7, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 4)) == 'k' and self.getPiece(7, 4).unmoved and \
+                self.getPiece(7, 5) == EMPTY and self.getPiece(7, 6) == EMPTY and \
+                not self.isThreatened(player, (7, 4)) and not self.isThreatened(player, (7, 5)) and not self.isThreatened(player, (7, 6))
 
     def canCastlingQueenside(self, player):
         '''
@@ -494,14 +466,15 @@ class Board:
         Output:
             canCastle (bool): can castling queenside or not
         '''
-        return self.canCastlingQueensideFEN(player) and \
-                self.getPiece(0, 3) == EMPTY and not self.isThreatened(player, (0, 3)) and \
-                self.getPiece(0, 2) == EMPTY and not self.isThreatened(player, (0, 2)) and \
-                self.getPiece(0, 1) == EMPTY if player == PLAYER_BLACK else \
-                self.canCastlingQueensideFEN(player) and \
-                self.getPiece(7, 3) == EMPTY and not self.isThreatened(player, (7, 3)) and \
-                self.getPiece(7, 2) == EMPTY and not self.isThreatened(player, (7, 2)) and \
-                self.getPiece(7, 1) == EMPTY
+        return self.getPiece(0, 7) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 7)) == 'R' and self.getPiece(0, 7).unmoved and \
+                self.getPiece(0, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(0, 4)) == 'K' and self.getPiece(0, 4).unmoved and \
+                self.getPiece(0, 3) == EMPTY and self.getPiece(0, 2) == EMPTY and self.getPiece(0, 1) == EMPTY and \
+                not self.isThreatened(player, (0, 4)) and not self.isThreatened(player, (0, 3)) and not self.isThreatened(player, (0, 2)) \
+                if player == PLAYER_BLACK else \
+                self.getPiece(7, 0) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 0)) == 'r' and self.getPiece(7, 0).unmoved and \
+                self.getPiece(7, 4) != EMPTY and self.getPieceAsciiName(self.getPiece(7, 4)) == 'k' and self.getPiece(7, 4).unmoved and \
+                self.getPiece(7, 3) == EMPTY and self.getPiece(7, 2) == EMPTY and self.getPiece(7, 1) == EMPTY and \
+                not self.isThreatened(player, (7, 4)) and not self.isThreatened(player, (7, 3)) and not self.isThreatened(player, (7, 2))
 
     def getAllLegalMoves(self):
         '''
