@@ -529,32 +529,21 @@ class Board:
 
     def switchPlayer(self):
         self.currPlayer = PLAYER_BLACK if self.currPlayer == PLAYER_WHITE else PLAYER_WHITE
-
-    def convertTupleToCoord(self, position): # for terminal version used only (for simulation)
-        return chr(ord('A')+position[1])+str(BOARD_SIZE-position[0])
-    
-    def convertCoordToTuple(self, position): # for terminal version used only
-        letter = position[0].upper()
-        number = BOARD_SIZE-int(position[1])
-        if letter not in "ABCDEFGH" or number not in range(BOARD_SIZE): return -1, -1
-        return number, ord(letter)-ord('A')
-
-    def moveCLI(self, start, end, verbose=True): # for terminal version used only
-        self.move(self.convertCoordToTuple(start), self.convertCoordToTuple(end))
   
-    def move(self, start, end, verbose=True): 
+    def move(self, start, end, verbose=True): # for CLI only
         '''
         Perform the entire update of the game board and game state information after the move, 
         including pawn promotion, piece unveiling, switching player, and game over check.
+        For Command Line Interface (CLI) only.
 
         Input:
-            pawn (Piece): pawn piece intend to promote
-            pieceType (str): type of piece intend to promote to
+            start (str): start position of the piece intend to move in standard format (e.g. "A2")
+            end (str): end position of the piece intend to move
         
         Output:
-            None
-
-        '''
+            pieceTaken (Piece or EMPTY): the piece taken if there is a piece at end or EMPTY
+        ''' # TODO: separate each step in the move function for the GUI version
+        start, end = convertCoordToTuple(start), convertCoordToTuple(end)
         r1, c1 = start
         r2, c2 = end
         piece = self.getPiece(r1, c1)
@@ -569,15 +558,17 @@ class Board:
                     if verbose and pieceType.upper() != 'K': 
                         print(f'{UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(origPieceType)]} at {(r2, c2)} is unveiled to {UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(pieceType)]}')
 
-                # pawn promotion # TODO: maybe made it separate from the move? 
+                # pawn promotion 
                 if self.getPieceAsciiName(piece).upper() == 'P': # first it should be a pawn
                     canPromote = self.promoteCheck(self.currPlayer, (r2, c2))
                     if canPromote:
+                        pieceType = input("Enter the piece you want to promote to from ['n', 'b', 'r', 'q']: \n").lower()
+                        if pieceType not in ['n', 'b', 'r', 'q']: print("Invalid promotion piece type. Please try another one.")
                         if verbose:
                             print("{pawn} promotes to {piece}".format(pawn=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(['P', 'p'][int(self.currPlayer == PLAYER_WHITE)])], \
                                                                     piece=UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.index(self.getPieceAsciiName(self.getPiece(r2, c2)))]))
-                        self.promote(self.getPiece(r2, c2), 'q') # default promotion to Queen
-
+                        self.promote(self.getPiece(r2, c2), pieceType) # promote the pawn to the chosen piece type
+                
                 self.switchPlayer()
                 if self.currPlayer == PLAYER_WHITE: self.numFullMoves += 1
                 # self.gameLog.append((start, end)) # TODO
@@ -647,7 +638,3 @@ class Board:
         newPiece.unmoved = False # unveiled
         self.whitePieces.append(newPiece) if player == PLAYER_WHITE else self.blackPieces.append(newPiece)
         self.setPiece(r, c, newPiece)
-
-# pieceType = input("Enter the piece you want to promote to from ['n', 'b', 'r', 'q']: \n").lower()
-# if pieceType not in ['n', 'b', 'r', 'q']: 
-#     raise Exception("Invalid promotion piece type. Please try another one.")

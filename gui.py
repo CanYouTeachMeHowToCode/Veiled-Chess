@@ -23,6 +23,40 @@ def pygameApp():
 	capturedSound = pygame.mixer.Sound('sounds/capture.wav')
 	moveSound = pygame.mixer.Sound('sounds/move.wav')
 
+	def move(start, end):
+		'''
+        Perform the entire update of the game board and game state information after the move, 
+        including pawn promotion, piece unveiling, switching player, and game over check.
+		For Pygame GUI only.
+
+        Input:
+            start (Tuple[int, int]): start position of the piece intend to move in coordinate format (e.g. (0, 1))
+            end (Tuple[int, int]): end position of the piece intend to move
+        
+        Output:
+            pieceTaken (Piece or EMPTY): the piece taken if there is a piece at end or EMPTY
+        '''
+		r1, c1 = start
+		r2, c2 = end
+		piece = GameBoard.getPiece(r1, c1)
+		assert(piece != EMPTY and GameBoard.currPlayer == piece.getPlayer())
+		legalMoves = GameBoard.getLegalMove(r1, c1)
+		assert((r2, c2) in legalMoves)
+		pieceTaken, firstMove = GameBoard.doMove((r1, c1), (r2, c2))
+		if firstMove: GameBoard.unveil(piece) # unveil the piece after the first move
+
+		# pawn promotion
+		if GameBoard.getPieceAsciiName(piece).upper() == 'P': # first it should be a pawn
+			canPromote = GameBoard.promoteCheck(GameBoard.currPlayer, (r2, c2))
+			pieceType = 'q' # TODO
+			if canPromote:
+				GameBoard.promote(GameBoard.getPiece(r2, c2), pieceType) # promote the pawn to the chosen piece type
+				
+		GameBoard.switchPlayer()
+		if GameBoard.currPlayer == PLAYER_WHITE: GameBoard.numFullMoves += 1
+		GameBoard.isGameOver()
+		return pieceTaken
+
 	def getPieceImage(piece):
 		pieceType = piece.__class__.__name__
 		piecePlayer = piece.getPlayer()
@@ -84,7 +118,7 @@ def pygameApp():
 					piece = GameBoard.getPiece(draggingFrom[0], draggingFrom[1])
 					legalMoves = GameBoard.getLegalMove(draggingFrom[0], draggingFrom[1])
 					if (r, c) in legalMoves:
-						pieceTaken = GameBoard.move((draggingFrom[0], draggingFrom[1]), (r, c))
+						pieceTaken = move((draggingFrom[0], draggingFrom[1]), (r, c))
 						lastMove = ((draggingFrom[0], draggingFrom[1]), (r, c))
 						if pieceTaken == EMPTY: moveSound.play()
 						else: capturedSound.play()
@@ -96,8 +130,8 @@ def pygameApp():
 					x -= offset_x
 					y -= offset_y
 					legalMoves = GameBoard.getLegalMove(draggingFrom[0], draggingFrom[1])
-					for move in legalMoves:
-						pygame.draw.rect(screen, COLOR_GREEN, (move[1]*SQUARE_SIZE, move[0]*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+					for (r, c) in legalMoves:
+						pygame.draw.rect(screen, COLOR_GREEN, (c*SQUARE_SIZE, r*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
 					screen.blit(getPieceImage(draggingPiece), (x, y))
 					pygame.display.flip()
 					

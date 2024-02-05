@@ -21,6 +21,16 @@ STANDARD_BOARD = ['RNBQKBNR',
                   'pppppppp',
                   'rnbqkbnr']
 
+# CLI utility functions
+def convertTupleToCoord(position):
+    return chr(ord('A')+position[1])+str(BOARD_SIZE-position[0])
+
+def convertCoordToTuple(position): 
+    letter = position[0].upper()
+    number = BOARD_SIZE-int(position[1])
+    if letter not in "ABCDEFGH" or number not in range(BOARD_SIZE): return -1, -1
+    return number, ord(letter)-ord('A')
+
 # Model training parameters
 BATCH_SIZE = 64
 LR = 5e-5

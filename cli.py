@@ -18,11 +18,11 @@ def CLI():
         if player == PLAYER_WHITE: # can be modified to customized later
             start = input("Enter starting position: ")
             end = input("Enter ending position: ")
-            GameBoard.moveCLI(start, end)
+            GameBoard.move(start, end)
         else: 
             start, end = blackAI.nextMove()[1]
-            start, end = GameBoard.convertTupleToCoord(start), GameBoard.convertTupleToCoord(end)
-            GameBoard.moveCLI(start, end)
+            start, end = convertTupleToCoord(start), convertTupleToCoord(end)
+            GameBoard.move(start, end)
         GameBoard.printBoard()
 
 if __name__ == '__main__':

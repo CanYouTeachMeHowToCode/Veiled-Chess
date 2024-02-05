@@ -49,7 +49,8 @@ class AI():
         '''
         move = random.choice(self.getLegalMoves())
         simBoard = copy.deepcopy(self.GameBoard)
-        simBoard.move(move[0], move[1], verbose)
+        start, end = convertTupleToCoord(move[0]), convertTupleToCoord(move[1])
+        simBoard.move(start, end, verbose)
         score = self.evaluate(simBoard, verbose)
         return score, move
     
@@ -62,8 +63,8 @@ class AI():
         directly use this function for predicting the next move 
 
         Output:
-            score (float): best moving score from AI agent
-            move (Tuple[Tuple[int, int], Tuple[int, int]]): best move from AI agent
+            bestScore (float): best moving score from AI agent
+            bestMove (Tuple[Tuple[int, int], Tuple[int, int]]): best move from AI agent
         '''
         moves = self.getLegalMoves()
         player = self.GameBoard.currPlayer
@@ -71,7 +72,8 @@ class AI():
             bestScore, bestMove = float('-inf'), None
             for move in moves:
                 simBoard = copy.deepcopy(self.GameBoard)
-                simBoard.move(move[0], move[1], verbose)
+                start, end = convertTupleToCoord(move[0]), convertTupleToCoord(move[1])
+                simBoard.move(start, end, verbose)
                 score = self.evaluate(simBoard, verbose)
                 if score >= bestScore:
                     bestScore = score
@@ -81,7 +83,8 @@ class AI():
             bestScore, bestMove = float('inf'), None
             for move in moves:
                 simBoard = copy.deepcopy(self.GameBoard)
-                simBoard.move(move[0], move[1], verbose)
+                start, end = convertTupleToCoord(move[0]), convertTupleToCoord(move[1])
+                simBoard.move(start, end, verbose)
                 score = self.evaluate(simBoard, verbose)
                 if score <= bestScore:
                     bestScore = score
