@@ -18,44 +18,12 @@ def pygameApp():
 	draggingFrom = None
 	offset_x, offset_y = 0, 0
 	lastMove = None
+	promotionMode = False
+	promotePieceType = None
 
 	# load sound effects
 	capturedSound = pygame.mixer.Sound('sounds/capture.wav')
 	moveSound = pygame.mixer.Sound('sounds/move.wav')
-
-	def move(start, end):
-		'''
-        Perform the entire update of the game board and game state information after the move, 
-        including pawn promotion, piece unveiling, switching player, and game over check.
-		For Pygame GUI only.
-
-        Input:
-            start (Tuple[int, int]): start position of the piece intend to move in coordinate format (e.g. (0, 1))
-            end (Tuple[int, int]): end position of the piece intend to move
-        
-        Output:
-            pieceTaken (Piece or EMPTY): the piece taken if there is a piece at end or EMPTY
-        '''
-		r1, c1 = start
-		r2, c2 = end
-		piece = GameBoard.getPiece(r1, c1)
-		assert(piece != EMPTY and GameBoard.currPlayer == piece.getPlayer())
-		legalMoves = GameBoard.getLegalMove(r1, c1)
-		assert((r2, c2) in legalMoves)
-		pieceTaken, firstMove = GameBoard.doMove((r1, c1), (r2, c2))
-		if firstMove: GameBoard.unveil(piece) # unveil the piece after the first move
-
-		# pawn promotion
-		if GameBoard.getPieceAsciiName(piece).upper() == 'P': # first it should be a pawn
-			canPromote = GameBoard.promoteCheck(GameBoard.currPlayer, (r2, c2))
-			pieceType = 'q' # TODO
-			if canPromote:
-				GameBoard.promote(GameBoard.getPiece(r2, c2), pieceType) # promote the pawn to the chosen piece type
-				
-		GameBoard.switchPlayer()
-		if GameBoard.currPlayer == PLAYER_WHITE: GameBoard.numFullMoves += 1
-		GameBoard.isGameOver()
-		return pieceTaken
 
 	def getPieceImage(piece):
 		pieceType = piece.__class__.__name__
@@ -91,6 +59,31 @@ def pygameApp():
 						pygame.draw.circle(screen, COLOR_RED, (c*SQUARE_SIZE+SQUARE_SIZE//2, r*SQUARE_SIZE+SQUARE_SIZE//2), SQUARE_SIZE//2)
 					screen.blit(pieceImage, (c*SQUARE_SIZE+(SQUARE_SIZE-pieceImage.get_width())//2, r*SQUARE_SIZE+(SQUARE_SIZE-pieceImage.get_height())//2))
 	
+	def drawPromotionMenu(screen, player, r, c):
+		# draw the promotion menu
+		pygame.draw.rect(screen, COLOR_WHITE, (WINDOW_SIZE[0]//2-300, WINDOW_SIZE[1]//2-200, 600, 300))
+		pygame.draw.rect(screen, COLOR_BLACK, (WINDOW_SIZE[0]//2-300, WINDOW_SIZE[1]//2-200, 600, 300), 5)
+		promotionFont = pygame.font.Font(None, 60)
+		screen.blit(promotionFont.render('Promote to:', 1, COLOR_BLACK), (WINDOW_SIZE[0]//2-110, WINDOW_SIZE[1]//2-175))
+		# draw the promotion pieces
+		promotionPieces = [GameBoard.makePiece(pieceType, r, c, player) for pieceType in ['N', 'R', 'B', 'Q']]
+		for i, piece in enumerate(promotionPieces):
+			pieceImage = getPieceImage(piece)
+			screen.blit(pieceImage, (WINDOW_SIZE[0]//2-250+i*125, WINDOW_SIZE[1]//2-125))
+		# # draw the selection box
+		# pygame.draw.rect(screen, COLOR_GREEN, (WINDOW_SIZE[0]//2-150, WINDOW_SIZE[1]//2-100, 75, 75), 5)
+		pygame.display.flip()
+		# # event handling
+		# for event in pygame.event.get():
+		# 	if event.type == pygame.MOUSEBUTTONDOWN:
+		# 		x, y = event.pos
+		# 		if WINDOW_SIZE[0]//2-150 <= x <= WINDOW_SIZE[0]//2+150 and WINDOW_SIZE[1]//2-100 <= y <= WINDOW_SIZE[1]//2+200:
+		# 			promotePieceType = (x-(WINDOW_SIZE[0]//2-150))//75
+		# 			promotionMode = False
+		# 			GameBoard.promote(GameBoard.getPiece(draggingFrom[0], draggingFrom[1]), promotionPieces[promotePieceType])
+		# 			pygame.display.flip()
+		# 			break
+
 	screen.fill((255, 255, 255))
 	drawBoard(screen)
 	pygame.display.flip()
@@ -118,12 +111,27 @@ def pygameApp():
 					piece = GameBoard.getPiece(draggingFrom[0], draggingFrom[1])
 					legalMoves = GameBoard.getLegalMove(draggingFrom[0], draggingFrom[1])
 					if (r, c) in legalMoves:
-						pieceTaken = move((draggingFrom[0], draggingFrom[1]), (r, c))
+						pieceTaken, firstMove = GameBoard.doMove((draggingFrom[0], draggingFrom[1]), (r, c))
+						if firstMove: GameBoard.unveil(piece) # unveil the piece after the first move
 						lastMove = ((draggingFrom[0], draggingFrom[1]), (r, c))
 						if pieceTaken == EMPTY: moveSound.play()
 						else: capturedSound.play()
+
+						# pawn promotion # TODO
+						if GameBoard.getPieceAsciiName(piece).upper() == 'P': # first it should be a pawn
+							canPromote = GameBoard.promoteCheck(GameBoard.currPlayer, (r, c))
+							if canPromote:
+								promotionMode = True
+								if promotePieceType: GameBoard.promote(GameBoard.getPiece(r, c), promotePieceType) # promote the pawn to the chosen piece type
+						
+						GameBoard.switchPlayer()
+						if GameBoard.currPlayer == PLAYER_WHITE: GameBoard.numFullMoves += 1
+						GameBoard.isGameOver()
 					dragging = False
 					draggingPiece = None
+				if promotionMode:
+					drawPromotionMenu(screen, GameBoard.currPlayer, r, c)
+					# promotionMode = False
 			elif event.type == pygame.MOUSEMOTION:
 				if dragging:
 					x, y = event.pos
@@ -135,7 +143,7 @@ def pygameApp():
 					screen.blit(getPieceImage(draggingPiece), (x, y))
 					pygame.display.flip()
 					
-		if not dragging: 
+		if not dragging and not promotionMode: 
 			pygame.display.flip()
 
 if __name__ == '__main__':
