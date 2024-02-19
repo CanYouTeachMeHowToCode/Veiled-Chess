@@ -59,13 +59,18 @@ def pygameApp():
 					if piece.getName().upper() == 'K' and GameBoard.isOnCheck(GameBoard.currPlayer) and piece.getPlayer() == GameBoard.currPlayer: 
 						pygame.draw.circle(screen, COLOR_RED, (c*SQUARE_SIZE+SQUARE_SIZE//2, r*SQUARE_SIZE+SQUARE_SIZE//2), SQUARE_SIZE//2)
 					screen.blit(pieceImage, (c*SQUARE_SIZE+(SQUARE_SIZE-pieceImage.get_width())//2, r*SQUARE_SIZE+(SQUARE_SIZE-pieceImage.get_height())//2))
+	
+	def drawTakenPieces(screen): # TODO
+		pygame.draw.rect(screen, COLOR_WHITE, (BOARD_WINDOW_SIZE[0], 0, WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0], WINDOW_SIZE[1]))
 
 	screen.fill((255, 255, 255))
 	drawBoard(screen)
+	drawTakenPieces(screen)
 	pygame.display.flip()
 
 	while not GameBoard.gameOver:
 		drawBoard(screen)
+		drawTakenPieces(screen)
 		if promotionMode: 
 			# draw the promotion menu
 			pygame.draw.rect(screen, COLOR_WHITE, (BOARD_WINDOW_SIZE[0]//2-300, BOARD_WINDOW_SIZE[1]//2-200, 600, 300))
@@ -105,7 +110,7 @@ def pygameApp():
 					pygame.quit()
 					sys.exit()
 				elif event.type == pygame.MOUSEBUTTONDOWN:
-					if event.pos[0] < BOARD_WINDOW_SIZE[0]:
+					if 0 <= event.pos[0] < BOARD_WINDOW_SIZE[0] and 0 <= event.pos[1] < BOARD_WINDOW_SIZE[1]: # every click/movement should be inside the board
 						if not dragging:
 							r, c = event.pos[1] // SQUARE_SIZE, event.pos[0] // SQUARE_SIZE
 							piece = GameBoard.getPiece(r, c)
@@ -116,7 +121,7 @@ def pygameApp():
 								offset_x = event.pos[0]-c*SQUARE_SIZE
 								offset_y = event.pos[1]-r*SQUARE_SIZE
 				elif event.type == pygame.MOUSEBUTTONUP:
-					if event.pos[0] < BOARD_WINDOW_SIZE[0]:
+					if 0 <= event.pos[0] < BOARD_WINDOW_SIZE[0] and 0 <= event.pos[1] < BOARD_WINDOW_SIZE[1]:
 						if dragging:
 							r, c = event.pos[1] // SQUARE_SIZE, event.pos[0] // SQUARE_SIZE
 							# Check if the move is legal
@@ -141,7 +146,7 @@ def pygameApp():
 							dragging = False
 							draggingPiece = None
 				elif event.type == pygame.MOUSEMOTION:
-					if event.pos[0] < BOARD_WINDOW_SIZE[0]:
+					if 0 <= event.pos[0] < BOARD_WINDOW_SIZE[0] and 0 <= event.pos[1] < BOARD_WINDOW_SIZE[1]:
 						if dragging:
 							x, y = event.pos
 							x -= offset_x
