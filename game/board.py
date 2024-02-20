@@ -91,6 +91,9 @@ class Board:
         else: newPiece = King(pieceType, r, c, player)
         return newPiece
 
+    def getCaptives(self):
+        return self.whiteCaptives, self.blackCaptives
+
     def getBoard(self):
         '''
         Get the current board--the board that treats veiled pieces independently
@@ -542,7 +545,7 @@ class Board:
         
         Output:
             pieceTaken (Piece or EMPTY): the piece taken if there is a piece at end or EMPTY
-        ''' # TODO: separate each step in the move function for the GUI version
+        ''' 
         start, end = convertCoordToTuple(start), convertCoordToTuple(end)
         r1, c1 = start
         r2, c2 = end
@@ -571,7 +574,7 @@ class Board:
                 
                 self.switchPlayer()
                 if self.currPlayer == PLAYER_WHITE: self.numFullMoves += 1
-                # self.gameLog.append((start, end)) # TODO
+                # self.gameLog.append((start, end)) # TODO: add game logs
                 self.isGameOver()
                 if self.gameOver:
                     if verbose: print("Game Over!")
@@ -586,7 +589,7 @@ class Board:
 
     def unveil(self, piece):
         '''
-        Unveil the current piece to the real piece after the first move.
+        Unveil the current piece to the real piece after the first move
 
         Input: 
             piece (Piece): piece going to be unveiled
