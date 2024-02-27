@@ -41,7 +41,7 @@ class Board:
         self.winner = 0 # 1 represents player white wins, -1 represents player black wins, 0 represents draw or game haven't finished
         self.whiteCaptives = []
         self.blackCaptives = []
-        self.gameLog = [] # game log (TODO: add info of piece being unveiled to which type in game log)
+        self.gameLog = [] # TODO: add info of piece being unveiled to which type in game log
         self.numFullMoves = 1 # number of full moves, starts at 1 and is incremented after Black's move
 
         # Game board initialization
@@ -71,7 +71,8 @@ class Board:
     def setPiece(self, r, c, piece):
         self._board[r][c] = piece
 
-    def getPieceAsciiName(self, piece): # provisional piece type (either veiled or unveiled)
+    @staticmethod
+    def getPieceAsciiName(piece): # provisional piece type (either veiled or unveiled)
         player = piece.getPlayer()
         pieceType = piece.__class__.__name__
         if pieceType == "Pawn": return 'p' if player == PLAYER_WHITE else 'P'
@@ -81,7 +82,8 @@ class Board:
         elif pieceType == "Queen": return 'q' if player == PLAYER_WHITE else 'Q'
         elif pieceType == "King": return 'k' if player == PLAYER_WHITE else 'K'
 
-    def makePiece(self, pieceType, r, c, player):
+    @staticmethod
+    def makePiece(pieceType, r, c, player):
         pieceType = pieceType.upper()
         if pieceType == 'P': newPiece = Pawn(pieceType, r, c, player)
         elif pieceType == 'N': newPiece = Knight(pieceType, r, c, player)
@@ -610,7 +612,8 @@ class Board:
     1. Pawn of current player reaches the bottom line of the opponent player
     2. Pawn can choose to promote to Knight, Bishop, Rook, or Queen
     '''
-    def promoteCheck(self, player, pos):
+    @staticmethod
+    def promoteCheck(player, pos):
         '''
         Check whether the current player can promote one of the Pawns after movement
 
