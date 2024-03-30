@@ -98,6 +98,19 @@ def pygameApp():
 				if blackUnveiledIdx < BOARD_SIZE: screen.blit(pieceImage, (BOARD_WINDOW_SIZE[0], (blackUnveiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16)))
 				else: screen.blit(pieceImage, (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])//4, (blackUnveiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16)))
 				blackUnveiledIdx += 1
+	
+	def drawGameOver(screen):
+		while 1:
+			drawBoard(screen)
+			font = pygame.font.Font(None, 100)
+			if GameBoard.winner == 1: screen.blit(font.render('White wins!', 1, (255, 255, 255)), (BOARD_WINDOW_SIZE[0]//2-200, BOARD_WINDOW_SIZE[1]//2-50))  
+			elif GameBoard.winner == -1: screen.blit(font.render('Black wins!', 1, (0, 0, 0)), (BOARD_WINDOW_SIZE[0]//2-200, BOARD_WINDOW_SIZE[1]//2-50))
+			else: screen.blit(font.render('Tie!', 1, (255, 255, 255)), (BOARD_WINDOW_SIZE[0]//2-100, BOARD_WINDOW_SIZE[1]//2-50))
+			pygame.display.flip()
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					pygame.quit()
+					sys.exit()
 
 	screen.fill((255, 255, 255))
 	drawBoard(screen)
@@ -195,6 +208,10 @@ def pygameApp():
 					
 		if not dragging: 
 			pygame.display.flip()
+	
+	assert GameBoard.gameOver
+	# draw the game over message
+	drawGameOver(screen)
 
 if __name__ == '__main__':
 	pygameApp()
