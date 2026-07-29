@@ -51,8 +51,7 @@ In this project, I’ll focus on developing the *Veiled Chess* game as well as t
 |-- docker-compose.yml        ---- Docker composing file
 |-- Dockerfile
 |-- setup.py                  ---- Script for setting up the project, including dataset simulation, model training & evaluation 
-|-- play.py                   ---- Script for interactive playing (playing vs another player, playing vs AI agents, etc.)
-|-- main.py                   ---- Main function
+|-- main.py                   ---- Main function (entry point for the Streamlit, CLI & PyGame apps)
 |-- requirements.txt
 ```
 
@@ -63,14 +62,19 @@ In this project, I’ll focus on developing the *Veiled Chess* game as well as t
 
 ## Usage
 
+`main.py` is the single entry point for all three interfaces; it auto-detects when it's launched via `streamlit run` and otherwise picks CLI or PyGame via a `--mode` flag.
+
 ### Run the streamlit web app 
 - Locally by running command `streamlit run main.py --server.port=8080`
 - Open http://veiled-chess-streamlit.azurewebsites.net
   - NOTE: Recommendation from Expert AI currently unavailable on the web app if not running locally due to several incompatibility issue of [*StockFish*](https://stockfishchess.org/) during deployment, will fix this issue later.
 
-### Start interactive playing
-- Locally by running command `python3 play.py`
+### Start interactive playing (CLI)
+- Locally by running command `python main.py` (or explicitly `python main.py --mode cli`)
 - NOTE: the interactive playing mode is only the rudimentary version (will directly start Player vs Proficient AI mode), will upgrade it and integrate it into web app later.
+
+### Run the PyGame app
+- Locally by running command `python main.py --mode gui`
 
 
 

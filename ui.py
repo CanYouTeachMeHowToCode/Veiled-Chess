@@ -9,16 +9,31 @@ def app():
     st.title("Veiled Chess Move Recommender")
     st.markdown('**A Veiled Chess game move strategy recommender using NN-based recommendation model**')
     st.markdown('*AIPI 540 Individual Project by Yilun Wu*')
-    st.write("Enter the current state of the chessboard below:")
+    st.write("Set the current state of the chessboard by picking a piece for each square below:")
+    st.caption("● = black veiled piece, ○ = white veiled piece")
+
+    def formatPiece(pieceType):
+        return UNICODE_PIECE_SYMBOLS[ASCII_PIECE_CHARS.find(pieceType)]
 
     def getBoard():
-        board = []
+        board = [['.' for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+
+        headerCols = st.columns([0.5] + [1] * BOARD_SIZE)
+        for c in range(BOARD_SIZE):
+            headerCols[c + 1].markdown(f"<p style='text-align:center;font-weight:600;'>{chr(ord('A')+c)}</p>", unsafe_allow_html=True)
+
+        LIGHT_SQUARE, DARK_SQUARE = "#f0d9b5", "#b58863"
         for r in range(BOARD_SIZE):
-            row = st.text_input(f"Row {r+1}", value="", max_chars=BOARD_SIZE, key=f"row_{r}")
-            if len(row) != BOARD_SIZE: 
-                st.error("Each row must have exactly 8 squares!")
-                return None
-            else: board.append(row)
+            rowCols = st.columns([0.5] + [1] * BOARD_SIZE)
+            rowCols[0].markdown(f"<p style='text-align:center;font-weight:600;padding-top:0.5em;'>{BOARD_SIZE-r}</p>", unsafe_allow_html=True)
+            for c in range(BOARD_SIZE):
+                squareColor = LIGHT_SQUARE if (r + c) % 2 == 0 else DARK_SQUARE
+                with rowCols[c + 1]:
+                    st.markdown(f"<div style='background-color:{squareColor};height:0.6em;border-radius:4px 4px 0 0;'></div>", unsafe_allow_html=True)
+                    board[r][c] = st.selectbox(
+                        "", options=list(ASCII_PIECE_CHARS),
+                        format_func=formatPiece, key=f"sq_{r}_{c}",
+                    )
         return board
 
     def convertBoard(board):
