@@ -41,7 +41,17 @@ def pygameApp():
 		pieceImage = pygame.image.load(pieceImgPath)
 		pieceImage = pygame.transform.scale(pieceImage, (SQUARE_SIZE//2, SQUARE_SIZE//2))
 		return pieceImage
-	
+
+	def drawVeiledBadge(screen, piece, pos, size): # mark a captured piece that was still veiled when taken
+		badgeRadius = size[0] // 6
+		badgeCenter = (pos[0]+size[0]-badgeRadius, pos[1]+badgeRadius)
+		if piece.getPlayer() == PLAYER_BLACK:
+			pygame.draw.circle(screen, (0, 0, 0), badgeCenter, badgeRadius)
+			pygame.draw.circle(screen, (255, 255, 255), badgeCenter, badgeRadius, 2)
+		else:
+			pygame.draw.circle(screen, (255, 255, 255), badgeCenter, badgeRadius)
+			pygame.draw.circle(screen, (0, 0, 0), badgeCenter, badgeRadius, 2)
+
 	def drawBoard(screen):
 		# draw the game board 
 		indexFont = pygame.font.Font(None, 36)
@@ -80,23 +90,29 @@ def pygameApp():
 		for piece in whiteCaptives:
 			pieceImage = getPieceTrueImage(piece)
 			if piece.unmoved: # veiled
-				if whiteVeiledIdx < BOARD_SIZE: screen.blit(pieceImage, (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])//2, WINDOW_SIZE[1]//2+(whiteVeiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16))) 
-				else: screen.blit(pieceImage, (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])*(3/4), WINDOW_SIZE[1]//2+(whiteVeiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16)))
-				whiteVeiledIdx += 1 
+				if whiteVeiledIdx < BOARD_SIZE: pos = (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])//2, WINDOW_SIZE[1]//2+(whiteVeiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16))
+				else: pos = (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])*(3/4), WINDOW_SIZE[1]//2+(whiteVeiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16))
+				screen.blit(pieceImage, pos)
+				drawVeiledBadge(screen, piece, pos, pieceImage.get_size())
+				whiteVeiledIdx += 1
 			else: # unveiled
-				if whiteUnveiledIdx < BOARD_SIZE: screen.blit(pieceImage, (BOARD_WINDOW_SIZE[0], WINDOW_SIZE[1]//2+(whiteUnveiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16))) 
-				else: screen.blit(pieceImage, (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])//4, WINDOW_SIZE[1]//2+(whiteUnveiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16)))
+				if whiteUnveiledIdx < BOARD_SIZE: pos = (BOARD_WINDOW_SIZE[0], WINDOW_SIZE[1]//2+(whiteUnveiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16))
+				else: pos = (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])//4, WINDOW_SIZE[1]//2+(whiteUnveiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16))
+				screen.blit(pieceImage, pos)
 				whiteUnveiledIdx += 1
 		# draw black captives on the white side
 		for piece in blackCaptives:
 			pieceImage = getPieceTrueImage(piece)
 			if piece.unmoved: # veiled
-				if blackVeiledIdx < BOARD_SIZE: screen.blit(pieceImage, (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])//2, (blackVeiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16))) 
-				else: screen.blit(pieceImage, (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])*(3/4), (blackVeiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16)))
+				if blackVeiledIdx < BOARD_SIZE: pos = (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])//2, (blackVeiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16))
+				else: pos = (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])*(3/4), (blackVeiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16))
+				screen.blit(pieceImage, pos)
+				drawVeiledBadge(screen, piece, pos, pieceImage.get_size())
 				blackVeiledIdx += 1
 			else: # unveiled
-				if blackUnveiledIdx < BOARD_SIZE: screen.blit(pieceImage, (BOARD_WINDOW_SIZE[0], (blackUnveiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16)))
-				else: screen.blit(pieceImage, (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])//4, (blackUnveiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16)))
+				if blackUnveiledIdx < BOARD_SIZE: pos = (BOARD_WINDOW_SIZE[0], (blackUnveiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16))
+				else: pos = (BOARD_WINDOW_SIZE[0]+(WINDOW_SIZE[0]-BOARD_WINDOW_SIZE[0])//4, (blackUnveiledIdx%BOARD_SIZE)*(WINDOW_SIZE[1]//16))
+				screen.blit(pieceImage, pos)
 				blackUnveiledIdx += 1
 	
 	def drawGameOver(screen):
